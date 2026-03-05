@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="color-scheme" content="dark">
+  <meta name="supported-color-schemes" content="dark">
+  <title>Daily Intelligence Brief — {{ date }}</title>
+  <!--[if !mso]><!-->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" type="text/css">
+  <!--<![endif]-->
+  <style type="text/css">
+    /* ── Reset ─────────────────────────────────────────────── */
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; display: block; outline: none; line-height: 100%; }
+    body { margin: 0; padding: 0; width: 100% !important; }
+
+    /* ── Base ───────────────────────────────────────────────── */
+    body {
+      background-color: #08080e;
+      font-family: 'IBM Plex Mono', 'Courier New', 'Lucida Console', monospace;
+      color: #d0d0e0;
+    }
+
+    .body-wrap {
+      background-color: #08080e;
+      width: 100%;
+      padding: 40px 0 60px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .header-cell {
+      background-color: #0c0c14;
+      padding: 44px 40px 36px;
+      border-bottom: 1px solid #1c1c2c;
+    }
+
+    .header-eyebrow {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #4f8ef7;
+      margin: 0 0 14px;
+    }
+
+    .header-title {
+      font-family: 'Cormorant Garamond', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+      font-size: 42px;
+      font-weight: 400;
+      color: #f2f2fa;
+      margin: 0 0 6px;
+      line-height: 1.05;
+      letter-spacing: -0.015em;
+    }
+
+    .header-rule {
+      width: 32px;
+      height: 1px;
+      background-color: #4f8ef7;
+      margin: 16px 0 14px;
+    }
+
+    .header-meta {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px;
+      color: #404060;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Section label ──────────────────────────────────────── */
+    .section-label-cell {
+      padding: 28px 40px 10px;
+    }
+
+    .section-label {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #363656;
+      border-bottom: 1px solid #14142a;
+      padding-bottom: 8px;
+    }
+
+    /* ── Entity card ────────────────────────────────────────── */
+    .card-wrap {
+      padding: 0 40px 16px;
+    }
+
+    .card {
+      background-color: #0e0e18;
+      border: 1px solid #1a1a2e;
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    /* ── Entity header ──────────────────────────────────────── */
+    .entity-header-cell {
+      background-color: #11111c;
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid #1a1a2e;
+    }
+
+    .entity-name {
+      font-family: 'Cormorant Garamond', 'Palatino Linotype', Georgia, serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: #f0f0fa;
+      margin: 0 0 8px;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+
+    .badge-model {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 8.5px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #4f8ef7;
+      background-color: rgba(79, 142, 247, 0.09);
+      border: 1px solid rgba(79, 142, 247, 0.22);
+      padding: 2px 8px 2px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .badge-source {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 8.5px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #484868;
+      background-color: rgba(72, 72, 104, 0.1);
+      border: 1px solid rgba(72, 72, 104, 0.22);
+      padding: 2px 8px 2px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* ── Video card ─────────────────────────────────────────── */
+    .video-wrap {
+      padding: 20px 22px;
+      border-bottom: 1px solid #141420;
+    }
+
+    .video-thumbnail {
+      width: 114px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 1px;
+      background-color: #14142a;
+      display: block;
+    }
+
+    .video-title {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      color: #e0e0f0;
+      line-height: 1.4;
+      margin: 0 0 6px;
+    }
+
+    .video-title a {
+      color: #e0e0f0;
+      text-decoration: none;
+    }
+
+    .video-stats {
+      font-size: 10px;
+      color: #3e3e5e;
+      letter-spacing: 0.04em;
+      line-height: 1.5;
+    }
+
+    .stat-sep { color: #252538; padding: 0 5px; }
+
+    /* ── Analysis content ───────────────────────────────────── */
+    .analysis-cell {
+      padding: 18px 22px 6px;
+    }
+
+    .analysis-content {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 12px;
+      color: #9090b0;
+      line-height: 1.75;
+    }
+
+    .analysis-content p { margin: 0 0 10px; }
+    .analysis-content p:last-child { margin-bottom: 0; }
+
+    .analysis-content h1,
+    .analysis-content h2 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: #d8d8ec;
+      margin: 18px 0 8px;
+      letter-spacing: -0.01em;
+      border-bottom: 1px solid #181828;
+      padding-bottom: 6px;
+    }
+
+    .analysis-content h3 {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #4f8ef7;
+      margin: 16px 0 8px;
+    }
+
+    .analysis-content h4 {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      color: #c0c0d8;
+      margin: 12px 0 6px;
+    }
+
+    .analysis-content ul,
+    .analysis-content ol {
+      padding-left: 18px;
+      margin: 8px 0;
+    }
+
+    .analysis-content li {
+      margin-bottom: 5px;
+      line-height: 1.65;
+    }
+
+    .analysis-content code {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10.5px;
+      background-color: rgba(79, 142, 247, 0.07);
+      border: 1px solid rgba(79, 142, 247, 0.14);
+      padding: 0 5px;
+      border-radius: 2px;
+      color: #7aa8f0;
+    }
+
+    .analysis-content pre {
+      background-color: #0a0a14;
+      border: 1px solid #1c1c30;
+      padding: 12px 14px;
+      border-radius: 2px;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+
+    .analysis-content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 10.5px;
+      color: #7aa8f0;
+    }
+
+    .analysis-content a {
+      color: #4f8ef7;
+      text-decoration: none;
+    }
+
+    .analysis-content strong, .analysis-content b {
+      color: #d0d0e8;
+      font-weight: 500;
+    }
+
+    .analysis-content em, .analysis-content i {
+      font-style: italic;
+      color: #a0a0c0;
+    }
+
+    .analysis-content blockquote {
+      border-left: 2px solid #4f8ef7;
+      margin: 10px 0;
+      padding: 6px 14px;
+      color: #6a6a8a;
+      background-color: rgba(79, 142, 247, 0.03);
+    }
+
+    /* ── Frames ─────────────────────────────────────────────── */
+    .frames-cell {
+      padding: 14px 22px 18px;
+      border-top: 1px solid #141420;
+    }
+
+    .frames-eyebrow {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #2c2c44;
+      margin-bottom: 10px;
+    }
+
+    .frame-img {
+      display: block;
+      width: 100%;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 1px;
+      border: 1px solid #181828;
+      background-color: #0c0c18;
+    }
+
+    .frame-ts {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 9px;
+      color: #4f8ef7;
+      text-decoration: none;
+      display: block;
+      margin: 4px 0 2px;
+      letter-spacing: 0.06em;
+    }
+
+    .frame-desc {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 9px;
+      color: #3a3a58;
+      line-height: 1.5;
+    }
+
+    /* ── Skipped notice ─────────────────────────────────────── */
+    .skipped-cell {
+      padding: 8px 22px 10px;
+      border-top: 1px solid #10101e;
+    }
+
+    .skipped-text {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 9.5px;
+      color: #2e2e48;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Recommendations ────────────────────────────────────── */
+    .recs-card {
+      background-color: rgba(79, 142, 247, 0.035);
+      border: 1px solid rgba(79, 142, 247, 0.18);
+      border-left: 3px solid #4f8ef7;
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    .recs-header-cell {
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid rgba(79, 142, 247, 0.1);
+    }
+
+    .recs-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 20px;
+      font-weight: 400;
+      font-style: italic;
+      color: #e0e0f0;
+      margin: 0 0 4px;
+      letter-spacing: -0.01em;
+    }
+
+    .recs-subtitle {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #4f8ef7;
+    }
+
+    .recs-body-cell {
+      padding: 16px 22px 18px;
+    }
+
+    .recs-content {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 12px;
+      color: #8888a8;
+      line-height: 1.75;
+    }
+
+    .recs-content h1,
+    .recs-content h2,
+    .recs-content h3 {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #4f8ef7;
+      margin: 18px 0 8px;
+    }
+
+    .recs-content h1:first-child,
+    .recs-content h2:first-child,
+    .recs-content h3:first-child { margin-top: 0; }
+
+    .recs-content p { margin: 0 0 8px; }
+    .recs-content ul, .recs-content ol { padding-left: 16px; margin: 6px 0; }
+    .recs-content li { margin-bottom: 6px; }
+    .recs-content strong, .recs-content b { color: #c8c8e0; font-weight: 500; }
+    .recs-content a { color: #4f8ef7; text-decoration: none; }
+    .recs-content code {
+      font-size: 10.5px;
+      background-color: rgba(79, 142, 247, 0.07);
+      border: 1px solid rgba(79, 142, 247, 0.14);
+      padding: 0 4px;
+      border-radius: 2px;
+      color: #7aa8f0;
+    }
+
+    /* ── Footer ─────────────────────────────────────────────── */
+    .footer-cell {
+      padding: 28px 40px 8px;
+      border-top: 1px solid #111120;
+    }
+
+    .footer-no-new-label {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #282840;
+      margin-bottom: 5px;
+    }
+
+    .footer-no-new-items {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 10px;
+      color: #282840;
+      margin-bottom: 16px;
+    }
+
+    .footer-rule {
+      height: 1px;
+      background-color: #0e0e1c;
+      margin: 12px 0;
+    }
+
+    .footer-meta {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 9.5px;
+      color: #22223a;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Utilities ──────────────────────────────────────────── */
+    .spacer-8  { height: 8px; }
+    .spacer-12 { height: 12px; }
+    .spacer-20 { height: 20px; }
+
+    @media only screen and (max-width: 480px) {
+      .body-wrap { padding: 24px 0 40px !important; }
+      .header-cell { padding: 32px 24px 28px !important; }
+      .header-title { font-size: 34px !important; }
+      .card-wrap { padding: 0 16px 12px !important; }
+      .section-label-cell { padding: 20px 24px 8px !important; }
+      .footer-cell { padding: 20px 24px 8px !important; }
+      .entity-header-cell, .video-wrap, .analysis-cell,
+      .frames-cell, .recs-header-cell, .recs-body-cell { padding-left: 16px !important; padding-right: 16px !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="body-wrap">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr><td align="center">
+
+<table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+
+  <!-- ╔══ HEADER ══════════════════════════════════════════════╗ -->
+  <tr>
+    <td class="header-cell">
+      <p class="header-eyebrow">{{ date }}</p>
+      <h1 class="header-title">Daily Intelligence<br>Brief</h1>
+      <div class="header-rule"></div>
+      <p class="header-meta">{{ summaries | selectattr('has_new_content') | list | length }} source{{ 's' if summaries | selectattr('has_new_content') | list | length != 1 else '' }} with new content</p>
+    </td>
+  </tr>
+
+  <!-- ╔══ INTELLIGENCE ════════════════════════════════════════╗ -->
+  <tr>
+    <td class="section-label-cell">
+      <div class="section-label">Intelligence</div>
+    </td>
+  </tr>
+
+  {% for summary in summaries %}
+  {% if summary.has_new_content %}
+  <tr>
+    <td class="card-wrap">
+      <table role="presentation" class="card" width="100%" cellpadding="0" cellspacing="0" border="0">
+
+        <!-- Entity header -->
+        <tr>
+          <td class="entity-header-cell">
+            <h2 class="entity-name">{{ summary.entity_name }}</h2>
+            <span class="badge-model">{{ summary.model }}</span>
+            &nbsp;
+            <span class="badge-source">
+              {%- if summary.source_type == 'youtube' -%}▶ youtube
+              {%- elif summary.source_type == 'rss' -%}◈ rss
+              {%- elif summary.source_type == 'api' -%}⬡ api
+              {%- else -%}◎ {{ summary.source_type }}
+              {%- endif -%}
+            </span>
+          </td>
+        </tr>
+
+        <!-- ── YouTube videos ── -->
+        {% if summary.source_type == 'youtube' %}
+          {% for video in summary.video_summaries %}
+
+          <!-- Video meta row -->
+          <tr>
+            <td class="video-wrap">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  {% if video.thumbnail_url %}
+                  <td width="114" valign="top" style="padding-right:14px;">
+                    <a href="{{ video.url }}" style="display:block;">
+                      <img src="{{ video.thumbnail_url }}" alt="{{ video.title | e }}" class="video-thumbnail" width="114" height="64">
+                    </a>
+                  </td>
+                  {% endif %}
+                  <td valign="top">
+                    <div class="video-title">
+                      <a href="{{ video.url }}">{{ video.title }}</a>
+                    </div>
+                    <div class="video-stats">
+                      {{ video.duration_str }}
+                      <span class="stat-sep">·</span>
+                      {{ "{:,}".format(video.view_count) }} views
+                      <span class="stat-sep">·</span>
+                      {{ "{:,}".format(video.like_count) }} likes
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Analysis -->
+          <tr>
+            <td class="analysis-cell">
+              <div class="analysis-content">{{ video.analysis | safe }}</div>
+            </td>
+          </tr>
+
+          <!-- Frame images -->
+          {% if video.frame_descriptions %}
+          {% set visible_frames = video.frame_descriptions | selectattr('github_url') | list %}
+          {% if visible_frames %}
+          <tr>
+            <td class="frames-cell">
+              <div class="frames-eyebrow">Key frames</div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  {% for frame in visible_frames %}
+                  {% if loop.index <= 3 %}
+                  <td width="{{ (100 / [visible_frames|length, 3]|min) | int }}%" valign="top" style="padding-right:{% if not loop.last %}8px{% else %}0{% endif %};">
+                    <a href="{{ frame.youtube_url }}" style="display:block;">
+                      <img src="{{ frame.github_url }}" alt="Frame at {{ frame.timestamp_sec }}s" class="frame-img" width="100%" height="80">
+                    </a>
+                    <a href="{{ frame.youtube_url }}" class="frame-ts">
+                      ↗ {{ frame.timestamp_sec // 60 }}:{{ '%02d' | format(frame.timestamp_sec % 60) }}{% if frame.chapter_title %} · {{ frame.chapter_title }}{% endif %}
+                    </a>
+                    {% if frame.description %}
+                    <span class="frame-desc">{{ frame.description }}</span>
+                    {% endif %}
+                  </td>
+                  {% endif %}
+                  {% endfor %}
+                </tr>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+          {% endif %}
+
+          {% endfor %}
+
+        <!-- ── Feed / API ── -->
+        {% else %}
+          {% if summary.feed_summaries and summary.feed_summaries[0].analysis %}
+          <tr>
+            <td class="analysis-cell" style="padding-top:20px;padding-bottom:18px;">
+              <div class="analysis-content">{{ summary.feed_summaries[0].analysis | safe }}</div>
+            </td>
+          </tr>
+          {% endif %}
+        {% endif %}
+
+        <!-- Skipped notice -->
+        {% if summary.skipped_count > 0 %}
+        <tr>
+          <td class="skipped-cell">
+            <span class="skipped-text">+ {{ summary.skipped_count }} previously seen item{{ 's' if summary.skipped_count != 1 }} skipped</span>
+          </td>
+        </tr>
+        {% endif %}
+
+      </table>
+    </td>
+  </tr>
+  {% endif %}
+  {% endfor %}
+
+  <!-- ╔══ RECOMMENDATIONS ═════════════════════════════════════╗ -->
+  {% if recommendations and recommendations.raw_text %}
+  <tr>
+    <td class="section-label-cell">
+      <div class="section-label">Build / Integrate</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="card-wrap">
+      <table role="presentation" class="recs-card" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="recs-header-cell">
+            <div class="recs-title">Today's Recommendations</div>
+            <div class="recs-subtitle">Synthesized from all sources above</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="recs-body-cell">
+            <div class="recs-content">{{ recommendations.raw_text | safe }}</div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  {% endif %}
+
+  <!-- ╔══ FOOTER ══════════════════════════════════════════════╗ -->
+  <tr>
+    <td class="footer-cell">
+      {% if no_new_content %}
+      <div class="footer-no-new-label">No new content</div>
+      <div class="footer-no-new-items">{{ no_new_content | join(' · ') }}</div>
+      {% endif %}
+      <div class="footer-rule"></div>
+      <div class="footer-meta">Generated {{ run_at }} · email-digest</div>
+    </td>
+  </tr>
+
+  <tr><td style="height:40px;"></td></tr>
+
+</table>
+
+</td></tr>
+</table>
+</div>
+</body>
+</html>

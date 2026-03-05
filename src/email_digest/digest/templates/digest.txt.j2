@@ -1,0 +1,54 @@
+DAILY INTELLIGENCE BRIEF — {{ date }}
+{{ '=' * 60 }}
+
+{% for summary in summaries %}
+{% if summary.has_new_content %}
+{{ '─' * 60 }}
+{{ summary.entity_name | upper }}  [{{ summary.model }}]
+{{ '─' * 60 }}
+
+{% if summary.source_type == 'youtube' %}
+{% for video in summary.video_summaries %}
+▶ {{ video.title }}
+   {{ video.url }}
+   Duration: {{ video.duration_str }} · Views: {{ "{:,}".format(video.view_count) }} · Likes: {{ "{:,}".format(video.like_count) }}
+
+{{ video.analysis | striptags }}
+
+{% if video.frame_descriptions %}
+Key frames:
+{% for frame in video.frame_descriptions %}
+  [{{ frame.timestamp_sec // 60 }}:{{ '%02d' % (frame.timestamp_sec % 60) }}{% if frame.chapter_title %} — {{ frame.chapter_title }}{% endif %}] {{ frame.youtube_url }}{% if frame.description %}
+  {{ frame.description }}{% endif %}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% else %}
+{% if summary.feed_summaries and summary.feed_summaries[0].analysis %}
+{{ summary.feed_summaries[0].analysis | striptags }}
+{% endif %}
+{% endif %}
+
+{% if summary.skipped_count > 0 %}
+(+ {{ summary.skipped_count }} previously seen items skipped)
+{% endif %}
+
+{% endif %}
+{% endfor %}
+
+{% if recommendations and recommendations.raw_text %}
+{{ '─' * 60 }}
+BUILD / INTEGRATE
+{{ '─' * 60 }}
+
+{{ recommendations.raw_text | striptags }}
+
+{% endif %}
+
+{% if no_new_content %}
+No new content: {{ no_new_content | join(', ') }}
+{% endif %}
+
+{{ '─' * 60 }}
+Generated {{ run_at }} · email-digest
