@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+dist/
+*.egg-info/
+.ruff_cache/
+.mypy_cache/
+
+# uv
+.python-version
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Data (screenshots committed; DB committed; raw video downloads NOT)
+data/videos/
+data/tmp/
+*.mp4
+*.webm
+*.mkv
+
+# Editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
