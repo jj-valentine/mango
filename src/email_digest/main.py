@@ -2,15 +2,18 @@
 Async orchestrator — entry point for the daily email digest.
 
 Usage:
-    uv run python -m email_digest.main               # full run + send
-    uv run python -m email_digest.main --dry-run     # fetch + analyze, no email
-    uv run python -m email_digest.main --entity "Nate B. Jones"  # single entity
-    uv run python -m email_digest.main --entity "Hacker News" --dry-run
+    uv run python -m email_digest.main                              # all users in config/
+    uv run python -m email_digest.main --user james                 # single user
+    uv run python -m email_digest.main --dry-run                    # no email, write HTML
+    uv run python -m email_digest.main --user james --dry-run
+    uv run python -m email_digest.main --entity "Nate B. Jones" --dry-run
+    uv run python -m email_digest.main --config path/to/file.yaml   # legacy single-file
 """
 from __future__ import annotations
 
 import argparse
 import asyncio
+import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -22,7 +25,7 @@ import anthropic
 from .agent.recommender import generate_recommendations
 from .agent.researcher import analyze_entity
 from .agent.vision import analyze_frames
-from .config import AppConfig, EntityConfig, load_config
+from .config import AppConfig, EntityConfig, load_config, load_configs
 from .dedup import SeenDB
 from .digest.formatter import render_email
 from .digest.sender import send_email
@@ -32,7 +35,8 @@ from .sources.rss import fetch_rss_feed
 from .sources.web import fetch_web_page
 from .sources.youtube import fetch_youtube_channel
 
-_SCREENSHOTS_DIR = Path(__file__).parent.parent.parent / "data" / "screenshots"
+_DATA_DIR = Path(__file__).parent.parent.parent / "data"
+_SCREENSHOTS_DIR = _DATA_DIR / "screenshots"
 
 
 # ---------------------------------------------------------------------------
@@ -60,6 +64,7 @@ def _fetch_entity_sources(
                     max_frames=source.max_frames,
                     screenshots_dir=_SCREENSHOTS_DIR,
                     seen_ids=seen_ids,
+                    enrichment_source=source.enrichment_source,
                 )
                 fc.entity_name = entity.name
 
@@ -125,48 +130,29 @@ def _merge_fetched(entity: EntityConfig, sources: list[FetchedContent]) -> Fetch
 
 
 # ---------------------------------------------------------------------------
-# GitHub commit of seen.db + screenshots after successful run
+# Per-user paths
 # ---------------------------------------------------------------------------
 
-def _commit_cache() -> None:
-    import subprocess
-    try:
-        subprocess.run(
-            ["git", "config", "user.name", "digest-bot"],
-            capture_output=True,
-        )
-        subprocess.run(
-            ["git", "config", "user.email", "bot@noreply"],
-            capture_output=True,
-        )
-        subprocess.run(["git", "add", "data/seen.db", "data/screenshots/"], capture_output=True)
-        result = subprocess.run(
-            ["git", "diff", "--staged", "--quiet"],
-            capture_output=True,
-        )
-        if result.returncode != 0:
-            subprocess.run(
-                ["git", "commit", "-m", "chore: update digest cache [skip ci]"],
-                capture_output=True,
-            )
-            subprocess.run(["git", "push"], capture_output=True)
-            print("[main] Cache committed and pushed.")
-    except Exception as e:
-        print(f"[main] Cache commit failed (non-fatal): {e}")
+def _db_path_for_user(user_label: str) -> Path:
+    """data/seen_james.db, data/seen_mom.db, etc."""
+    return _DATA_DIR / f"seen_{user_label}.db"
+
+
+def _preview_path_for_user(user_label: str) -> Path:
+    return Path(f"digest_preview_{user_label}.html")
 
 
 # ---------------------------------------------------------------------------
-# Main orchestration
+# Core pipeline (one user / one config)
 # ---------------------------------------------------------------------------
 
 async def run_digest(
     config: AppConfig,
     dry_run: bool = False,
     entity_filter: str | None = None,
+    user_label: str = "default",
 ) -> int:
-    """
-    Run the full digest pipeline. Returns 0 on success, 1 on failure.
-    """
+    """Run the full digest pipeline for one config. Returns 0 on success, 1 on failure."""
     start = time.monotonic()
     client = anthropic.Anthropic(api_key=config.anthropic_api_key)
     _SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -175,14 +161,15 @@ async def run_digest(
     if entity_filter:
         entities = [e for e in entities if e.name.lower() == entity_filter.lower()]
         if not entities:
-            print(f"[main] Entity '{entity_filter}' not found in config.")
+            print(f"[{user_label}] Entity '{entity_filter}' not found in config.")
             return 1
 
-    # ── Phase 1: Fetch all sources in parallel ───────────────────────────
-    print(f"[main] Fetching {len(entities)} entit{'y' if len(entities) == 1 else 'ies'}…")
+    # ── Phase 1: Fetch sources in parallel ───────────────────────────────
+    print(f"[{user_label}] Fetching {len(entities)} entit{'y' if len(entities) == 1 else 'ies'}…")
     loop = asyncio.get_running_loop()
+    db_path = _db_path_for_user(user_label)
 
-    with SeenDB() as db:
+    with SeenDB(db_path=db_path) as db:
         with ThreadPoolExecutor(max_workers=min(len(entities), 8)) as pool:
             fetch_futures = [
                 loop.run_in_executor(pool, _fetch_entity_sources, entity, db)
@@ -193,61 +180,63 @@ async def run_digest(
     fetched: list[FetchedContent] = []
     for entity, result in zip(entities, raw_sources):
         if isinstance(result, Exception):
-            print(f"[main] Fetch failed for {entity.name}: {result}")
+            print(f"[{user_label}] Fetch failed for {entity.name}: {result}")
             fetched.append(FetchedContent(
                 entity_name=entity.name, source_type="error", items=[], has_new_content=False
             ))
         else:
-            merged = _merge_fetched(entity, result)
-            fetched.append(merged)
+            fetched.append(_merge_fetched(entity, result))
 
-    # ── Phase 2: Claude Vision on extracted frames ───────────────────────
+    # ── Phase 2: Claude Vision on extracted frames ────────────────────────
     for fc in fetched:
         if fc.source_type != "youtube":
             continue
         for video in fc.items:
             if video.frames:
-                print(f"[main] Analyzing {len(video.frames)} frame(s) for '{video.title}'…")
+                print(f"[{user_label}] Analyzing {len(video.frames)} frame(s) for '{video.title}'…")
                 analyze_frames(video, client=client)
 
     # ── Phase 3: Per-entity Claude analysis ──────────────────────────────
-    print("[main] Running entity analysis…")
+    print(f"[{user_label}] Running entity analysis…")
     summaries = []
     for entity, fc in zip(entities, fetched):
         print(f"  → {entity.name}…")
-        summary = analyze_entity(entity, fc, client=client)
-        summaries.append(summary)
+        summaries.append(analyze_entity(entity, fc, client=client))
 
-    # ── Phase 4: Post-analysis recommendations ───────────────────────────
+    # ── Phase 4: Recommendations ─────────────────────────────────────────
     recs = None
     if config.projects:
-        print("[main] Generating build/integrate recommendations…")
+        print(f"[{user_label}] Generating recommendations…")
         recs = generate_recommendations(summaries, config, client=client)
 
     # ── Phase 5: Format ───────────────────────────────────────────────────
     run_at = datetime.now(timezone.utc)
-    html_body, plain_body = render_email(summaries, recs, run_at=run_at)
+    html_body, plain_body = render_email(
+        summaries, recs, run_at=run_at,
+        template_html=config.template_html,
+        template_txt=config.template_txt,
+    )
 
     elapsed = time.monotonic() - start
-    print(f"[main] Pipeline complete in {elapsed:.1f}s.")
+    print(f"[{user_label}] Pipeline complete in {elapsed:.1f}s.")
 
     if dry_run:
-        out_path = Path("digest_preview.html")
-        out_path.write_text(html_body)
-        print(f"[main] Dry run — email saved to {out_path} (not sent).")
+        out = _preview_path_for_user(user_label)
+        out.write_text(html_body)
+        print(f"[{user_label}] Dry run → {out} (not sent)")
         return 0
 
     # ── Phase 6: Send ─────────────────────────────────────────────────────
-    print("[main] Sending email…")
+    print(f"[{user_label}] Sending email to {config.digest.email_to}…")
     try:
         msg_id = send_email(html_body, plain_body, config)
-        print(f"[main] Email sent. ID: {msg_id}")
+        print(f"[{user_label}] Email sent. ID: {msg_id}")
     except Exception as e:
-        print(f"[main] Email send FAILED: {e}")
+        print(f"[{user_label}] Email send FAILED: {e}")
         return 1
 
     # ── Phase 7: Persist dedup cache ─────────────────────────────────────
-    with SeenDB() as db:
+    with SeenDB(db_path=db_path) as db:
         for entity, fc in zip(entities, fetched):
             for item in fc.items:
                 url = getattr(item, "url", "")
@@ -255,29 +244,109 @@ async def run_digest(
                 if url:
                     db.mark_seen(entity.name, url, title)
 
-    _commit_cache()
     return 0
 
+
+# ---------------------------------------------------------------------------
+# Multi-user orchestrator
+# ---------------------------------------------------------------------------
+
+async def run_all_digests(
+    config_dir: str | None = None,
+    dry_run: bool = False,
+    entity_filter: str | None = None,
+    user_filter: str | None = None,
+) -> int:
+    """Load all YAMLs from config dir and run the pipeline for each user."""
+    configs = load_configs(config_dir)
+
+    if not configs:
+        print("[main] No user configs found.")
+        return 1
+
+    if user_filter:
+        if user_filter not in configs:
+            print(f"[main] User '{user_filter}' not found. Available: {list(configs)}")
+            return 1
+        configs = {user_filter: configs[user_filter]}
+
+    anthropic_key = configs[next(iter(configs))].anthropic_api_key
+    if not anthropic_key:
+        print("[main] ERROR: ANTHROPIC_API_KEY not set.")
+        return 1
+
+    results: dict[str, int] = {}
+    for user_label, config in configs.items():
+        try:
+            rc = await run_digest(
+                config,
+                dry_run=dry_run,
+                entity_filter=entity_filter,
+                user_label=user_label,
+            )
+            results[user_label] = rc
+        except Exception as e:
+            print(f"[main] Digest failed for {user_label}: {e}")
+            results[user_label] = 1
+
+    ok = [u for u, rc in results.items() if rc == 0]
+    failed = [u for u, rc in results.items() if rc != 0]
+    print(f"\n[main] {len(ok)}/{len(results)} digest(s) succeeded.{' Failed: ' + ', '.join(failed) if failed else ''}")
+    return 0 if not failed else 1
+
+
+# ---------------------------------------------------------------------------
+# Git commit helper (called by GitHub Actions step, optional locally)
+# ---------------------------------------------------------------------------
+
+def _commit_cache() -> None:
+    try:
+        subprocess.run(["git", "config", "user.name", "digest-bot"], capture_output=True)
+        subprocess.run(["git", "config", "user.email", "bot@noreply.github.com"], capture_output=True)
+        subprocess.run(["git", "add", "data/", "--", "data/seen_*.db", "data/screenshots/"], capture_output=True)
+        result = subprocess.run(["git", "diff", "--staged", "--quiet"], capture_output=True)
+        if result.returncode != 0:
+            subprocess.run(["git", "commit", "-m", "chore: update digest cache [skip ci]"], capture_output=True)
+            subprocess.run(["git", "push"], capture_output=True)
+            print("[main] Cache committed and pushed.")
+    except Exception as e:
+        print(f"[main] Cache commit failed (non-fatal): {e}")
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Daily email digest runner")
     parser.add_argument("--dry-run", action="store_true", help="Skip email send, write HTML to disk")
     parser.add_argument("--entity", metavar="NAME", help="Run only this entity (exact name)")
-    parser.add_argument("--config", metavar="PATH", help="Path to entities.yaml")
+    parser.add_argument("--user", metavar="NAME", help="Run only this user (YAML stem, e.g. 'james')")
+    parser.add_argument("--config-dir", metavar="DIR", help="Directory of user YAML configs (default: config/)")
+    parser.add_argument("--config", metavar="PATH", help="Single YAML config (legacy single-user mode)")
     args = parser.parse_args()
 
-    config = load_config(args.config)
+    if args.config:
+        # Legacy single-file mode (backward compat)
+        config = load_config(args.config)
+        if not config.anthropic_api_key:
+            print("[main] ERROR: ANTHROPIC_API_KEY not set.")
+            sys.exit(1)
+        if not args.dry_run and not config.resend_api_key:
+            print("[main] ERROR: RESEND_API_KEY not set.")
+            sys.exit(1)
+        rc = asyncio.run(run_digest(config, dry_run=args.dry_run, entity_filter=args.entity))
+    else:
+        # Multi-user mode (default)
+        rc = asyncio.run(
+            run_all_digests(
+                config_dir=args.config_dir,
+                dry_run=args.dry_run,
+                entity_filter=args.entity,
+                user_filter=args.user,
+            )
+        )
 
-    if not config.anthropic_api_key:
-        print("[main] ERROR: ANTHROPIC_API_KEY not set.")
-        sys.exit(1)
-    if not args.dry_run and not config.resend_api_key:
-        print("[main] ERROR: RESEND_API_KEY not set (use --dry-run to skip sending).")
-        sys.exit(1)
-
-    rc = asyncio.run(
-        run_digest(config, dry_run=args.dry_run, entity_filter=args.entity)
-    )
     sys.exit(rc)
 
 

@@ -29,6 +29,8 @@ def render_email(
     summaries: list[EntitySummary],
     recommendations: RecommenderOutput | None,
     run_at: datetime | None = None,
+    template_html: str = "digest.html.j2",
+    template_txt: str = "digest.txt.j2",
 ) -> tuple[str, str]:
     """
     Returns (html_body, plain_body) for the digest.
@@ -65,8 +67,8 @@ def render_email(
     # Disable HTML auto-escaping for the | safe filter to work correctly
     env.autoescape = False
 
-    html_template = env.get_template("digest.html.j2")
-    txt_template = env.get_template("digest.txt.j2")
+    html_template = env.get_template(template_html)
+    txt_template = env.get_template(template_txt)
 
     raw_html = html_template.render(**context)
     # Inline all CSS for email client compatibility

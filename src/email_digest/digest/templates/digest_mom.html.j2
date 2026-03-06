@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="color-scheme" content="light">
+  <title>Morning Science Briefing — {{ date }}</title>
+  <!--[if !mso]><!-->
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet" type="text/css">
+  <!--<![endif]-->
+  <style type="text/css">
+    /* ── Reset ─────────────────────────────────────────────────── */
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; display: block; outline: none; line-height: 100%; }
+    body { margin: 0; padding: 0; width: 100% !important; }
+
+    /* ── Base ───────────────────────────────────────────────────── */
+    body {
+      background-color: #f3ede4;
+      font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
+      color: #1a2744;
+    }
+
+    .body-wrap {
+      background-color: #f3ede4;
+      width: 100%;
+      padding: 32px 0 56px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    .header-cell {
+      background-color: #1a2744;
+      padding: 40px 44px 36px;
+    }
+
+    .header-overline {
+      font-family: 'Source Sans 3', Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #c45c3a;
+      margin: 0 0 18px;
+    }
+
+    .header-title {
+      font-family: 'Lora', 'Georgia', 'Times New Roman', serif;
+      font-size: 38px;
+      font-weight: 400;
+      font-style: italic;
+      color: #faf8f4;
+      margin: 0 0 8px;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+
+    .header-title-strong {
+      font-style: normal;
+      font-weight: 600;
+      display: block;
+    }
+
+    .header-rule-wrap {
+      padding: 14px 0 0;
+    }
+
+    .header-rule {
+      height: 1px;
+      background-color: rgba(196, 92, 58, 0.4);
+    }
+
+    .header-meta {
+      font-family: 'Source Sans 3', Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 300;
+      color: rgba(250, 248, 244, 0.5);
+      letter-spacing: 0.04em;
+      margin-top: 10px;
+    }
+
+    /* ── Section label ──────────────────────────────────────────── */
+    .section-label-cell {
+      padding: 28px 20px 10px;
+    }
+
+    .section-label-inner {
+      border-left: 3px solid #c45c3a;
+      padding-left: 12px;
+    }
+
+    .section-label-text {
+      font-family: 'Source Sans 3', Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #c45c3a;
+    }
+
+    /* ── Entity card ────────────────────────────────────────────── */
+    .card-wrap {
+      padding: 0 20px 14px;
+    }
+
+    .card {
+      background-color: #ffffff;
+      border: 1px solid #e8e2d9;
+      border-radius: 2px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(26, 39, 68, 0.05);
+    }
+
+    /* ── Entity header ──────────────────────────────────────────── */
+    .entity-header-cell {
+      background-color: #faf8f4;
+      padding: 16px 24px 12px;
+      border-bottom: 1px solid #e8e2d9;
+    }
+
+    .entity-name {
+      font-family: 'Lora', 'Georgia', serif;
+      font-size: 19px;
+      font-weight: 600;
+      color: #1a2744;
+      margin: 0 0 6px;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    .badge-source {
+      display: inline-block;
+      font-family: 'Source Sans 3', Arial, sans-serif;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #8a7d6e;
+      background-color: #f0ebe3;
+      border: 1px solid #ddd6cb;
+      padding: 2px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* ── Video card (CERN) ──────────────────────────────────────── */
+    .video-wrap {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid #f0ebe3;
+    }
+
+    .video-thumbnail {
+      width: 100%;
+      max-width: 552px;
+      height: auto;
+      border-radius: 2px;
+      background-color: #e8e2d9;
+      display: block;
+      margin-bottom: 14px;
+    }
+
+    .video-title {
+      font-family: 'Lora', 'Georgia', serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: #1a2744;
+      line-height: 1.4;
+      margin: 0 0 6px;
+    }
+
+    .video-title a {
+      color: #1a2744;
+      text-decoration: none;
+    }
+
+    .video-stats {
+      font-family: 'Source Sans 3', Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      color: #9a8e80;
+      letter-spacing: 0.03em;
+    }
+
+    .stat-sep { color: #d4cdc5; padding: 0 6px; }
+
+    /* ── Analysis content ───────────────────────────────────────── */
+    .analysis-cell {
+      padding: 20px 24px 8px;
+    }
+
+    .analysis-content {
+      font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: #2e3d5a;
+      line-height: 1.85;
+    }
+
+    .analysis-content p { margin: 0 0 12px; }
+    .analysis-content p:last-child { margin-bottom: 0; }
+
+    .analysis-content h1,
+    .analysis-content h2 {
+      font-family: 'Lora', 'Georgia', serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a2744;
+      margin: 20px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e8e2d9;
+      line-height: 1.3;
+    }
+
+    .analysis-content h3 {
+      font-family: 'Source Sans 3', Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #c45c3a;
+      margin: 18px 0 8px;
+    }
+
+    .analysis-content h4 {
+      font-family: 'Lora', 'Georgia', serif;
+      font-size: 15px;
+      font-weight: 500;
+      font-style: italic;
+      color: #1a2744;
+      margin: 14px 0 6px;
+    }
+
+    .analysis-content ul,
+    .analysis-content ol {
+      padding-left: 20px;
+      margin: 8px 0 12px;
+    }
+
+    .analysis-content li {
+      margin-bottom: 6px;
+      line-height: 1.75;
+    }
+
+    .analysis-content code {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      background-color: #f0ebe3;
+      border: 1px solid #ddd6cb;
+      padding: 1px 5px;
+      border-radius: 2px;
+      color: #5a3e2b;
+    }
+
+    .analysis-content a {
+      color: #c45c3a;
+      text-decoration: underline;
+      text-decoration-color: rgba(196, 92, 58, 0.35);
+    }
+
+    .analysis-content strong, .analysis-content b {
+      color: #1a2744;
+      font-weight: 600;
+    }
+
+    .analysis-content em, .analysis-content i {
+      font-style: italic;
+      color: #3a4f72;
+    }
+
+    .analysis-content blockquote {
+      border-left: 3px solid #c45c3a;
+      margin: 12px 0;
+      padding: 8px 16px;
+      color: #5a6e8a;
+      background-color: #faf8f4;
+      font-style: italic;
+    }
+
+    /* ── Skipped notice ─────────────────────────────────────────── */
+    .skipped-cell {
+      padding: 8px 24px 10px;
+      border-top: 1px solid #f0ebe3;
+    }
+
+    .skipped-text {
+      font-family: 'Source Sans 3', Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      color: #b0a494;
+      letter-spacing: 0.03em;
+      font-style: italic;
+    }
+
+    /* ── Decorative ornament ─────────────────────────────────────── */
+    .ornament-cell {
+      padding: 4px 20px 4px;
+      text-align: center;
+    }
+
+    .ornament {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 16px;
+      color: #d4cdc5;
+      letter-spacing: 0.3em;
+    }
+
+    /* ── Footer ─────────────────────────────────────────────────── */
+    .footer-cell {
+      padding: 28px 44px 8px;
+      border-top: 2px solid #1a2744;
+      margin-top: 8px;
+    }
+
+    .footer-no-new-label {
+      font-family: 'Source Sans 3', Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #b0a494;
+      margin-bottom: 4px;
+    }
+
+    .footer-no-new-items {
+      font-family: 'Source Sans 3', Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 300;
+      color: #c0b8ae;
+      margin-bottom: 16px;
+    }
+
+    .footer-meta {
+      font-family: 'Source Sans 3', Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      color: #c0b8ae;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Responsive ─────────────────────────────────────────────── */
+    @media only screen and (max-width: 480px) {
+      .body-wrap { padding: 16px 0 40px !important; }
+      .header-cell { padding: 28px 24px 24px !important; }
+      .header-title { font-size: 30px !important; }
+      .card-wrap { padding: 0 12px 12px !important; }
+      .section-label-cell { padding: 20px 16px 8px !important; }
+      .footer-cell { padding: 20px 24px 8px !important; }
+      .entity-header-cell, .video-wrap, .analysis-cell { padding-left: 16px !important; padding-right: 16px !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="body-wrap">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr><td align="center">
+
+<table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+
+  <!-- ╔══ HEADER ══════════════════════════════════════════════╗ -->
+  <tr>
+    <td class="header-cell">
+      <p class="header-overline">{{ date }}</p>
+      <h1 class="header-title">
+        Morning<br>
+        <span class="header-title-strong">Science Briefing</span>
+      </h1>
+      <div class="header-rule-wrap">
+        <div class="header-rule"></div>
+      </div>
+      <p class="header-meta">{{ summaries | selectattr('has_new_content') | list | length }} section{{ 's' if summaries | selectattr('has_new_content') | list | length != 1 }}</p>
+    </td>
+  </tr>
+
+  <!-- ╔══ BRIEFINGS ═══════════════════════════════════════════╗ -->
+  <tr>
+    <td class="section-label-cell">
+      <div class="section-label-inner">
+        <div class="section-label-text">Today's Briefing</div>
+      </div>
+    </td>
+  </tr>
+
+  {% for summary in summaries %}
+  {% if summary.has_new_content %}
+  <tr>
+    <td class="card-wrap">
+      <table role="presentation" class="card" width="100%" cellpadding="0" cellspacing="0" border="0">
+
+        <!-- Entity header -->
+        <tr>
+          <td class="entity-header-cell">
+            <h2 class="entity-name">{{ summary.entity_name }}</h2>
+            <span class="badge-source">
+              {%- if summary.source_type == 'youtube' -%}▶ video
+              {%- elif summary.source_type == 'rss' -%}◈ news feed
+              {%- elif summary.source_type == 'api' -%}⬡ live feed
+              {%- else -%}◎ {{ summary.source_type }}
+              {%- endif -%}
+            </span>
+          </td>
+        </tr>
+
+        {% if summary.source_type == 'youtube' %}
+        <!-- YouTube: show thumbnail + title, then analysis; skip frame grid -->
+          {% for video in summary.video_summaries %}
+          <tr>
+            <td class="video-wrap">
+              {% if video.thumbnail_url %}
+              <a href="{{ video.url }}" style="display:block;margin-bottom:14px;">
+                <img src="{{ video.thumbnail_url }}" alt="{{ video.title | e }}" class="video-thumbnail" width="552">
+              </a>
+              {% endif %}
+              <div class="video-title">
+                <a href="{{ video.url }}">{{ video.title }}</a>
+              </div>
+              <div class="video-stats" style="margin-top:5px;">
+                {{ video.duration_str }}
+                <span class="stat-sep">·</span>
+                {{ "{:,}".format(video.view_count) }} views
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="analysis-cell" style="padding-bottom:18px;">
+              <div class="analysis-content">{{ video.analysis | safe }}</div>
+            </td>
+          </tr>
+          {% endfor %}
+
+        {% else %}
+        <!-- RSS / web / API: analysis only -->
+          {% if summary.feed_summaries and summary.feed_summaries[0].analysis %}
+          <tr>
+            <td class="analysis-cell" style="padding-top:22px;padding-bottom:20px;">
+              <div class="analysis-content">{{ summary.feed_summaries[0].analysis | safe }}</div>
+            </td>
+          </tr>
+          {% endif %}
+        {% endif %}
+
+        {% if summary.skipped_count > 0 %}
+        <tr>
+          <td class="skipped-cell">
+            <span class="skipped-text">{{ summary.skipped_count }} previously seen item{{ 's' if summary.skipped_count != 1 }} not repeated</span>
+          </td>
+        </tr>
+        {% endif %}
+
+      </table>
+    </td>
+  </tr>
+
+  {% if not loop.last %}
+  <tr>
+    <td class="ornament-cell">
+      <div class="ornament">· · ·</div>
+    </td>
+  </tr>
+  {% endif %}
+
+  {% endif %}
+  {% endfor %}
+
+  <!-- ╔══ FOOTER ══════════════════════════════════════════════╗ -->
+  <tr>
+    <td class="footer-cell" style="margin-top:20px;">
+      {% if no_new_content %}
+      <div class="footer-no-new-label">No new content</div>
+      <div class="footer-no-new-items">{{ no_new_content | join(' · ') }}</div>
+      {% endif %}
+      <div class="footer-meta">{{ run_at }}</div>
+    </td>
+  </tr>
+
+  <tr><td style="height:32px;"></td></tr>
+
+</table>
+
+</td></tr>
+</table>
+</div>
+</body>
+</html>

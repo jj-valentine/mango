@@ -40,6 +40,7 @@ class VideoInfo:
     transcript: list[tuple[float, str]] | None  # [(start_sec, text), ...]
     comments: list[Comment]
     frames: list[VideoFrame] = field(default_factory=list)
+    enrichment: dict | None = None  # pre-classified metadata from external sources (e.g. nate_transcripts)
 
 
 @dataclass

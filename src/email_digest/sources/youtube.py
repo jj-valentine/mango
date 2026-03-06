@@ -23,11 +23,21 @@ def fetch_youtube_channel(
     max_frames: int = 3,
     screenshots_dir: Path | None = None,
     seen_ids: set[str] | None = None,
+    enrichment_source: str = "",
 ) -> FetchedContent:
     """Fetch latest videos from a YouTube channel with full metadata."""
     entity_name = channel_url  # caller replaces with entity name
     videos = []
     skipped = 0
+
+    # Pre-fetch enrichment index if requested (cached for the process lifetime)
+    enrichment_index: dict = {}
+    if enrichment_source == "nate_transcripts":
+        try:
+            from .nate_enrichment import fetch_nate_index
+            enrichment_index = fetch_nate_index()
+        except Exception as e:
+            print(f"[youtube] Enrichment index fetch failed: {e}")
 
     ydl_opts = {
         "quiet": True,
@@ -67,6 +77,24 @@ def fetch_youtube_channel(
             break
 
         video = _parse_video_entry(entry)
+
+        # Attach pre-classified enrichment metadata if available
+        if enrichment_index and video.video_id in enrichment_index:
+            raw_entry = enrichment_index[video.video_id]
+            video.enrichment = {
+                "content_type": raw_entry.get("content_type", ""),
+                "primary_topic": raw_entry.get("primary_topic", ""),
+                "difficulty": raw_entry.get("difficulty", ""),
+                "audience": raw_entry.get("audience", []),
+                "entities_mentioned": (
+                    raw_entry.get("entities", {}).get("companies", [])
+                    + raw_entry.get("entities", {}).get("products", [])
+                    + raw_entry.get("entities", {}).get("ai_models", [])
+                ),
+                "people_mentioned": raw_entry.get("entities", {}).get("people", []),
+                "concepts": raw_entry.get("knowledge", {}).get("concepts", []),
+                "pre_summary": raw_entry.get("knowledge", {}).get("summary", ""),
+            }
 
         if include_transcripts:
             video.transcript = _fetch_transcript(video_id)

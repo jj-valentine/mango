@@ -254,6 +254,29 @@ def _build_video_metadata(video: VideoInfo) -> str:
             )
         lines.append("")
 
+    # Pre-classified enrichment metadata (from external source, e.g. nate_transcripts)
+    if video.enrichment:
+        e = video.enrichment
+        lines.append("PRE-CLASSIFIED ENRICHMENT (external source):")
+        if e.get("content_type"):
+            lines.append(f"  Content type: {e['content_type']}")
+        if e.get("difficulty"):
+            lines.append(f"  Difficulty: {e['difficulty']}")
+        if e.get("audience"):
+            audience = e["audience"] if isinstance(e["audience"], str) else ", ".join(e["audience"])
+            lines.append(f"  Audience: {audience}")
+        if e.get("primary_topic"):
+            lines.append(f"  Primary topic: {e['primary_topic']}")
+        if e.get("entities_mentioned"):
+            lines.append(f"  Tools/entities: {', '.join(e['entities_mentioned'][:15])}")
+        if e.get("people_mentioned"):
+            lines.append(f"  People mentioned: {', '.join(e['people_mentioned'][:10])}")
+        if e.get("concepts"):
+            lines.append(f"  Concepts: {', '.join(e['concepts'][:10])}")
+        if e.get("pre_summary"):
+            lines.append(f"  Pre-written summary: {textwrap.shorten(e['pre_summary'], 400, placeholder='...')}")
+        lines.append("")
+
     return "\n".join(lines)
 
 

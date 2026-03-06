@@ -1,8 +1,11 @@
+template_html: "digest.html.j2"
+template_txt: "digest.txt.j2"
+
 digest:
-  email_to: "you@example.com"
-  email_from: "digest@yourdomain.com"
+  email_to: "j@mesvalentine.com"
+  email_from: "j@mesvalentine.com"
   subject: "Daily Intelligence Brief — {date}"
-  send_time: "07:00 UTC"
+  send_time: "15:30 UTC"
 
 # Checked AFTER analysis — used to refine "build vs integrate" recommendations.
 # GITHUB_TOKEN (auto in Actions) works for public repos.
@@ -34,6 +37,7 @@ entities:
         include_comments: true
         extract_frames: true
         max_frames: 5
+        enrichment_source: "nate_transcripts"  # augments with pre-classified metadata
 
   - name: "Brian Casel"
     description: "SaaS entrepreneur and maker"

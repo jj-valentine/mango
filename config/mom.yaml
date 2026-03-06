@@ -1,0 +1,73 @@
+template_html: "digest_mom.html.j2"
+template_txt: "digest.txt.j2"
+
+digest:
+  email_to: "james@real-k9.com"
+  email_from: "j@mesvalentine.com"
+  subject: "Morning Science Briefing — {date}"
+  send_time: "15:30 UTC"
+
+entities:
+  - name: "Frontier Physics"
+    description: "Cutting-edge physics research and discoveries"
+    model: "claude-sonnet-4-6"
+    include_comments: false
+    max_comments: 0
+    directive: |
+      Explain each story as if talking to a sharp 17-year-old who loves science but
+      isn't a physicist. Lead with WHY this matters to the world, not with jargon.
+      Keep each item to 3-5 sentences. Use plain analogies for complex concepts
+      (e.g. "imagine the atom like..." or "this is similar to...").
+      Prioritize the most surprising or significant results. Skip incremental lab updates.
+    sources:
+      - type: rss
+        url: "https://physicsworld.com/feed/"
+        max_items: 5
+      - type: rss
+        url: "https://physics.aps.org/rss/recent.rss"
+        max_items: 5
+
+  - name: "Particle Physics (CERN)"
+    description: "Official CERN channel — frontier particle physics and major experiments"
+    model: "claude-sonnet-4-6"
+    include_comments: false
+    max_comments: 0
+    directive: |
+      Surface the most interesting video or announcement this week.
+      Explain the core discovery or concept in plain English:
+        1. What did they find or announce?
+        2. Why does it matter to anyone who isn't a particle physicist?
+        3. What experiment or machine made this possible?
+      Keep it to a short paragraph. No jargon without explanation.
+    sources:
+      - type: youtube
+        url: "https://www.youtube.com/@CERN"
+        max_videos: 2
+        include_transcripts: true
+        include_comments: false
+        extract_frames: true
+        max_frames: 2
+
+  - name: "Medical Research"
+    description: "Biomedical research highlights and medical science news"
+    model: "claude-sonnet-4-6"
+    include_comments: false
+    max_comments: 0
+    directive: |
+      Surface the most clinically significant or surprising results.
+      The reader has 30 years of experience as a trauma nurse coordinator at
+      Harborview Medical Center (Level I trauma center). She understands medicine deeply
+      but doesn't need jargon — she needs the "so what?"
+      For each item:
+        1. What did the study find?
+        2. Study type (RCT, observational, meta-analysis) and how much to trust it
+        3. Clinical relevance — does this change anything for patients or providers?
+        4. Any relevance to acute care or trauma medicine, if applicable
+      Plain language. Opinionated. Don't hedge everything — say if a result is strong.
+    sources:
+      - type: rss
+        url: "https://www.nih.gov/news-events/research-matters/rss"
+        max_items: 5
+      - type: web
+        url: "https://www.statnews.com/category/science/"
+        max_items: 5

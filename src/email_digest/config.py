@@ -1,12 +1,14 @@
-"""Configuration loading from entities.yaml and environment variables."""
+"""Configuration loading from per-user YAML files and environment variables."""
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
 import yaml
+
+
+_CONFIG_DIR = Path(__file__).parent.parent.parent / "config"
 
 
 @dataclass
@@ -20,6 +22,7 @@ class SourceConfig:
     extract_frames: bool = False
     max_frames: int = 3
     item_url: str = ""               # for API sources: URL template for individual items
+    enrichment_source: str = ""      # e.g. "nate_transcripts" — activates enrichment module
 
 
 @dataclass
@@ -44,7 +47,7 @@ class DigestConfig:
     email_to: str
     email_from: str
     subject: str = "Daily Intelligence Brief — {date}"
-    send_time: str = "07:00 UTC"
+    send_time: str = "15:30 UTC"
 
 
 @dataclass
@@ -53,15 +56,27 @@ class AppConfig:
     entities: list[EntityConfig]
     projects: list[ProjectConfig] = field(default_factory=list)
 
-    # API keys from environment
+    # Optional per-user template overrides (filename only, resolved from templates/)
+    template_html: str = "digest.html.j2"
+    template_txt: str = "digest.txt.j2"
+
+    # API keys from environment (not in YAML)
     anthropic_api_key: str = ""
     resend_api_key: str = ""
     github_pat: str = ""
 
 
 def load_config(config_path: str | None = None) -> AppConfig:
+    """Load a single YAML config file. Falls back to config/james.yaml."""
     if config_path is None:
-        config_path = Path(__file__).parent.parent.parent / "config" / "entities.yaml"
+        # Prefer james.yaml; fall back to legacy entities.yaml
+        for candidate in ("james.yaml", "entities.yaml"):
+            p = _CONFIG_DIR / candidate
+            if p.exists():
+                config_path = str(p)
+                break
+        if config_path is None:
+            raise FileNotFoundError(f"No config YAML found in {_CONFIG_DIR}")
 
     with open(config_path) as f:
         raw = yaml.safe_load(f)
@@ -70,7 +85,8 @@ def load_config(config_path: str | None = None) -> AppConfig:
 
     entities = []
     for e in raw.get("entities", []):
-        sources = [SourceConfig(**s) for s in e.pop("sources", [])]
+        sources_raw = e.pop("sources", [])
+        sources = [SourceConfig(**s) for s in sources_raw]
         entities.append(EntityConfig(sources=sources, **e))
 
     projects = [ProjectConfig(**p) for p in raw.get("projects", [])]
@@ -79,7 +95,29 @@ def load_config(config_path: str | None = None) -> AppConfig:
         digest=digest,
         entities=entities,
         projects=projects,
+        template_html=raw.get("template_html", "digest.html.j2"),
+        template_txt=raw.get("template_txt", "digest.txt.j2"),
         anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
         resend_api_key=os.environ.get("RESEND_API_KEY", ""),
         github_pat=os.environ.get("GH_PAT", os.environ.get("GITHUB_TOKEN", "")),
     )
+
+
+def load_configs(config_dir: str | Path | None = None) -> dict[str, AppConfig]:
+    """
+    Load all *.yaml files from a directory, keyed by filename stem.
+    Skips files prefixed with '_' or containing 'example'.
+    """
+    d = Path(config_dir) if config_dir else _CONFIG_DIR
+    configs: dict[str, AppConfig] = {}
+
+    for yaml_file in sorted(d.glob("*.yaml")):
+        stem = yaml_file.stem
+        if stem.startswith("_") or "example" in stem:
+            continue
+        try:
+            configs[stem] = load_config(str(yaml_file))
+        except Exception as e:
+            print(f"[config] Failed to load {yaml_file.name}: {e}")
+
+    return configs

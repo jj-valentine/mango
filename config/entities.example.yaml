@@ -1,0 +1,98 @@
+# email-digest — Example configuration file
+# Copy this to config/yourname.yaml and fill in your details.
+# Each *.yaml file in config/ becomes a separate digest run.
+# Files named *example* or starting with _ are ignored by the runner.
+#
+# Required GitHub secrets: ANTHROPIC_API_KEY, RESEND_API_KEY
+# Optional: GH_PAT (for reading private project repos in the `projects` section)
+
+# ── Email template ─────────────────────────────────────────────────────────
+# Filenames relative to src/email_digest/digest/templates/
+# Omit to use the defaults below.
+template_html: "digest.html.j2"    # dark editorial template (default)
+template_txt:  "digest.txt.j2"     # plain-text fallback (default)
+
+# ── Delivery ───────────────────────────────────────────────────────────────
+digest:
+  email_to:   "you@example.com"
+  email_from: "digest@yourdomain.com"   # must be verified in Resend dashboard
+  subject:    "Daily Intelligence Brief — {date}"
+  send_time:  "15:30 UTC"              # informational; actual scheduling via cron
+
+# ── Projects (optional) ────────────────────────────────────────────────────
+# After analysis, Claude reads these files to generate "Build / Integrate" recs.
+# GITHUB_TOKEN works for public repos. Set GH_PAT secret for private repos.
+projects:
+  - repo: "yourusername/your-project"
+    files: ["README.md", "CLAUDE.md"]  # files to read for project context
+
+# ── Entities ───────────────────────────────────────────────────────────────
+# An entity is a person, topic, or community you want to track.
+# Each entity can have multiple sources (YouTube, RSS, API, web).
+entities:
+
+  # ── YouTube creator example ───────────────────────────────────────────
+  - name: "Creator Name"
+    description: "What this person covers — one sentence"
+    model: "claude-sonnet-4-6"     # or "claude-haiku-4-5" for simpler/cheaper entities
+    include_comments: true
+    max_comments: 30               # top-liked comments only
+    directive: |
+      For each new video:
+        1. Main thesis (2-3 sentences)
+        2. Novel concepts or frameworks introduced
+        3. Specific tools mentioned or demoed
+        4. Key insights from top comments
+        5. Visual summary of any important charts/diagrams in key frames
+      Prioritize heatmap peaks and chapter markers.
+    sources:
+      - type: youtube
+        url: "https://www.youtube.com/@ChannelHandle"
+        max_videos: 5
+        include_transcripts: true
+        include_comments: true
+        extract_frames: true
+        max_frames: 5
+        # enrichment_source: "nate_transcripts"  # Nate Jones only; adds pre-classified metadata
+
+  # ── RSS feed example ──────────────────────────────────────────────────
+  - name: "Blog / Publication"
+    description: "Short description of this source"
+    model: "claude-haiku-4-5"
+    include_comments: false
+    max_comments: 0
+    directive: |
+      Surface the 3 most interesting posts from today.
+      One-line summary per post + why it matters.
+    sources:
+      - type: rss
+        url: "https://example.com/feed.xml"
+        max_items: 10
+
+  # ── API endpoint example (Hacker News) ───────────────────────────────
+  - name: "Hacker News"
+    description: "Tech community — top stories and discussions"
+    model: "claude-haiku-4-5"
+    include_comments: true
+    max_comments: 5               # top-level comments only, per story
+    directive: |
+      Surface top 10 AI/ML and developer-tools stories.
+      For each: one-line summary + why it matters.
+      Flag anything relevant to agent systems or dev tooling.
+    sources:
+      - type: api
+        url: "https://hacker-news.firebaseio.com/v0/topstories.json"
+        max_items: 10
+        item_url: "https://hacker-news.firebaseio.com/v0/item/{id}.json"
+
+  # ── Web page example (JS-rendered or no RSS) ──────────────────────────
+  - name: "Some Website"
+    description: "A site without an RSS feed"
+    model: "claude-haiku-4-5"
+    include_comments: false
+    max_comments: 0
+    directive: |
+      Summarize any new articles or announcements on this page.
+    sources:
+      - type: web
+        url: "https://example.com/news"
