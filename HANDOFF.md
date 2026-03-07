@@ -53,8 +53,10 @@ Then open `digest_preview_mom.html` in a browser to review.
 ## Pending After Merge
 1. Add mom's real email to `config/mom.yaml` (currently `james@real-k9.com` for dry-run)
 2. Trigger `workflow_dispatch` on GitHub Actions → verify end-to-end
-3. Consider renaming the GitHub repo from `email-digest` → `mango`
-4. Make repo public (config files already gitignored)
+3. Make repo public (config files already gitignored)
+
+## Future Features
+- **GUI / web dashboard** — a simple browser-based UI so non-technical users (e.g. mom) can configure their digest, preview it, and trigger a send without touching YAML or the CLI. Should be dead-simple: drag-and-drop source management, big "Send Digest" button, live HTML preview. Target user: comfortable with email, not with terminals.
 
 ## GitHub Secrets (already set in repo)
 - `ANTHROPIC_API_KEY` ✅

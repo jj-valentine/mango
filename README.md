@@ -1,183 +1,154 @@
 <div align="center">
-  <img src="logo.svg" alt="mango logo" width="120"/>
+  <img src="logo.svg" alt="mango" width="110"/>
   <h1>mango</h1>
-  <p><em>A self-hosted, Claude-powered daily email digest — fresh content, AI-analyzed, delivered to your inbox.</em></p>
+  <p>Self-hosted Claude-powered daily email digest.<br/>Curates YouTube, RSS, APIs, and web pages into one sharp email.</p>
   <p>
     <img src="https://img.shields.io/badge/python-3.12%2B-f4931a?logo=python&logoColor=white" alt="Python 3.12+"/>
-    <img src="https://img.shields.io/badge/claude-sonnet%20%7C%20haiku-blueviolet?logo=anthropic&logoColor=white" alt="Claude"/>
-    <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT"/>
-    <img src="https://img.shields.io/badge/runs%20on-github%20actions-2088FF?logo=github-actions&logoColor=white" alt="GitHub Actions"/>
+    <img src="https://img.shields.io/badge/claude-sonnet%20%7C%20haiku-5A4FCF?logo=anthropic&logoColor=white" alt="Claude"/>
+    <img src="https://img.shields.io/badge/license-MIT-22aa55" alt="MIT"/>
+    <img src="https://img.shields.io/badge/runs%20on-GitHub%20Actions-2088FF?logo=github-actions&logoColor=white" alt="GitHub Actions"/>
   </p>
 </div>
 
 ---
 
-## Why mango?
-
-Mangoes aid digestion — fiber, polyphenols, ~83% water — and [a randomized trial confirmed it](https://pmc.ncbi.nlm.nih.gov/articles/PMC10084975/). The catch is that too many mangoes will absolutely wreck your afternoon. Same principle applies here: one well-curated daily digest keeps you sharp. Fifteen RSS feeds firing every hour does not.
+> Mangoes are genuinely good for digestion — fiber, polyphenols, ~83% water — and [a randomized trial confirmed it](https://pmc.ncbi.nlm.nih.gov/articles/PMC10084975/). The catch is too many mangoes will wreck your afternoon. Same principle applies here: one curated daily digest keeps you sharp. Fifteen RSS feeds firing every hour does not.
 
 ---
 
-## What it does
-
-mango pulls from YouTube channels, RSS feeds, JSON APIs, and web pages — runs everything through Claude — and sends you a single, focused HTML email each day.
-
-- **Fetches** YouTube transcripts, key frames, and comments; RSS items; API endpoints; and JS-rendered pages
-- **Analyzes** each source with a per-entity Claude model and custom prompt directive
-- **Deduplicates** across runs — you'll never see the same item twice
-- **Optionally reads** your GitHub project files and generates build-vs-integrate recommendations
-- **Renders** a clean HTML + plain-text email via Jinja2 templates and sends via Resend
-- **Supports multiple users** — one YAML config per person, run in parallel
-
----
-
-## Architecture
+## How it works
 
 ```
-config/
-  james.yaml
-  alice.yaml
-       │
-       ▼
-┌──────────────────────────────────────────┐
-│                 main.py                  │
-│   load_configs()  →  ThreadPoolExecutor  │
-└──────────┬───────────────────────────────┘
-           │  per entity (parallel)
-           ▼
-┌──────────────────────┐
-│    Source Fetchers   │
-│  youtube / rss /     │
-│  api / web           │
-└──────────┬───────────┘
-           │  FetchedContent
-           ▼
-┌──────────────────────┐
-│    Claude Agents     │
-│  researcher          │  ← analyze_entity()
-│  vision              │  ← analyze_frames()
-│  recommender         │  ← generate_recommendations()
-└──────────┬───────────┘
-           │  EntityAnalysis[]
-           ▼
-┌──────────────────────┐
-│   Digest Renderer    │
-│  digest.html.j2      │
-│  digest.txt.j2       │
-└──────────┬───────────┘
-           │
-           ▼
-       Resend API
-           │
-           ▼
-         inbox
+YouTube · RSS · APIs · Web
+          │
+    Source Fetchers
+    (parallel fetch)
+          │
+    Claude Agents
+    researcher · vision · recommender
+          │
+    Jinja2 Renderer
+    HTML + plain-text
+          │
+      Resend API
+          │
+        inbox
 ```
 
-**Stack:** Python 3.12 · [Anthropic Claude](https://anthropic.com) · [yt-dlp](https://github.com/yt-dlp/yt-dlp) · [youtube-transcript-api](https://github.com/jdepoix/youtube-transcript-api) · [feedparser](https://feedparser.readthedocs.io) · [Playwright](https://playwright.dev/python/) · [Resend](https://resend.com) · SQLite · GitHub Actions
+Each source is fetched in parallel, analyzed by a Claude model using your custom prompt directive, deduplicated against a SQLite cache, then rendered into a clean HTML email and delivered via Resend — daily, unattended.
+
+**What gets fetched:**
+- YouTube transcripts, key frames (vision analysis), and comments
+- RSS feeds
+- JSON API endpoints (with per-item URL templates)
+- JS-rendered web pages via Playwright
+
+**What you get:**
+- Per-entity AI summaries driven by your own directives
+- Optional "build vs. integrate" recommendations based on your active GitHub projects
+- Deduplication across runs — you'll never see the same item twice
+- Multi-user support — one YAML per person, all run in parallel
 
 ---
 
 ## Quick start
 
 ```bash
-# 1. Clone
-git clone https://github.com/jj-valentine/mango.git
-cd mango
+git clone https://github.com/jj-valentine/mango.git && cd mango
 
-# 2. Set up environment
-cp .env.example .env
-$EDITOR .env   # fill in ANTHROPIC_API_KEY and RESEND_API_KEY
-
-# 3. Create your config
+cp .env.example .env         # add ANTHROPIC_API_KEY + RESEND_API_KEY
 cp config/entities.example.yaml config/yourname.yaml
-$EDITOR config/yourname.yaml
 
-# 4. Dry run — writes HTML to disk, no email sent
 uv run mango --user yourname --dry-run
 ```
 
-Open `digest_preview_yourname.html` in a browser to see the output.
+Open the generated `digest_preview_yourname.html` in a browser. When it looks right, remove `--dry-run`.
 
 ---
 
-## Configuration guide
+## Configuration
 
-Each file in `config/` maps to one digest recipient. Files matching `*example*` or starting with `_` are skipped.
+Each file in `config/` maps to one recipient. Files matching `*example*` or starting with `_` are skipped.
 
 ```yaml
-# ── Delivery ────────────────────────────────────────────────────────────────
 digest:
   email_to:   "you@example.com"
-  email_from: "digest@yourdomain.com"  # must be a verified Resend sender
-  subject:    "Daily Intelligence Brief — {date}"
-  send_time:  "15:30 UTC"              # informational; schedule is set via cron
+  email_from: "digest@yourdomain.com"
+  subject:    "Daily Brief — {date}"
 
-# ── Projects (optional) ─────────────────────────────────────────────────────
-# Claude reads these files after entity analysis and generates
-# "build vs integrate" recommendations based on what you're tracking.
-projects:
-  - repo: "youruser/your-project"
-    files: ["README.md", "CLAUDE.md"]
-
-# ── Entities ────────────────────────────────────────────────────────────────
 entities:
-  - name: "Creator Name"
-    description: "One-sentence summary of what this source covers"
+  - name: "Andrej Karpathy"
+    description: "ML researcher and educator"
     model: "claude-sonnet-4-6"
-    include_comments: true
-    max_comments: 30
     directive: |
       For each new video:
-        1. Main thesis (2-3 sentences)
-        2. Novel concepts or frameworks introduced
-        3. Specific tools or libraries mentioned
+      1. Core thesis in 2 sentences
+      2. Novel concepts introduced
+      3. Any tools or code mentioned
     sources:
       - type: youtube
-        url: "https://www.youtube.com/@ChannelHandle"
-        max_videos: 5
+        url: "https://www.youtube.com/@AndrejKarpathy"
+        max_videos: 3
         include_transcripts: true
-        include_comments: true
         extract_frames: true
-        max_frames: 5
 
       - type: rss
-        url: "https://example.com/feed.xml"
-        max_items: 10
+        url: "https://karpathy.github.io/feed.xml"
 
+  - name: "Hacker News"
+    description: "Top tech stories"
+    model: "claude-haiku-4-5"
+    directive: "Summarise each story in one sentence. Flag anything AI/ML-related."
+    sources:
       - type: api
         url: "https://hacker-news.firebaseio.com/v0/topstories.json"
         max_items: 10
         item_url: "https://hacker-news.firebaseio.com/v0/item/{id}.json"
-
-      - type: web
-        url: "https://example.com/news"
 ```
 
-### Field reference
+<details>
+<summary><strong>Full field reference</strong></summary>
 
 | Field | Required | Description |
 |---|---|---|
-| `name` | yes | Entity label. Used as the digest section heading and for dedup tracking. |
-| `description` | yes | One-sentence description passed to Claude as context. |
-| `model` | yes | Claude model ID. Use `claude-haiku-4-5` for cheap/simple, `claude-sonnet-4-6` for richer analysis. |
-| `directive` | yes | Freeform instruction to Claude — appended to the system prompt for this entity. |
+| `name` | yes | Entity label — used as the digest section heading and for dedup tracking. |
+| `description` | yes | One-sentence context passed to Claude. |
+| `model` | yes | Claude model ID. Use `claude-haiku-4-5` for cheap/simple, `claude-sonnet-4-6` for deeper analysis. |
+| `directive` | yes | Freeform instruction appended to Claude's system prompt for this entity. |
 | `include_comments` | no | Fetch and analyze comments (YouTube + API). Default: `false`. |
 | `max_comments` | no | Upper bound on comments fetched (top-liked). |
 | `sources[].type` | yes | One of `youtube`, `rss`, `api`, `web`. |
-| `sources[].url` | yes | Source URL. For `api` type, the list endpoint. |
+| `sources[].url` | yes | Source URL. For `api`, the list endpoint. |
 | `sources[].max_videos` | youtube | Max videos to consider per run. |
 | `sources[].include_transcripts` | youtube | Fetch auto-generated or manual transcripts. |
 | `sources[].extract_frames` | youtube | Screenshot key frames for vision analysis. |
-| `sources[].max_frames` | youtube | Max frames to extract per video. |
-| `sources[].enrichment_source` | youtube | Optional enrichment hook identifier (e.g. `"nate_transcripts"`). |
+| `sources[].max_frames` | youtube | Max frames per video. |
+| `sources[].enrichment_source` | youtube | Optional enrichment hook (e.g. `"nate_transcripts"`). |
 | `sources[].max_items` | rss / api | Max items to fetch. |
-| `sources[].item_url` | api | Per-item URL template. `{id}` is replaced with each item ID from the list response. |
+| `sources[].item_url` | api | Per-item URL template — `{id}` is replaced with each item ID. |
+
+</details>
+
+<details>
+<summary><strong>Projects (build vs. integrate recommendations)</strong></summary>
+
+Add a `projects` block to have Claude read your active GitHub repos and append "build vs. integrate" recommendations based on what you're tracking:
+
+```yaml
+projects:
+  - repo: "youruser/your-project"
+    files: ["README.md", "CLAUDE.md"]
+```
+
+Claude reads the listed files after entity analysis and suggests whether a tool or library mentioned in the digest is worth building yourself or integrating directly.
+
+</details>
 
 ---
 
-## Multi-user setup
+## Multi-user
 
-Add one YAML per user to `config/`:
+One YAML per user in `config/`:
 
 ```
 config/
@@ -186,111 +157,79 @@ config/
   james.yaml
 ```
 
-Run all users (what GitHub Actions does by default):
-
 ```bash
-uv run mango
+uv run mango              # all users
+uv run mango --user alice # one user
 ```
 
-Run a single user:
-
-```bash
-uv run mango --user alice
-```
-
-Each user gets an independent dedup database at `data/seen_alice.db`.
+Each user gets an independent dedup DB at `data/seen_alice.db`.
 
 ---
 
-## GitHub Actions setup
+## GitHub Actions
 
-The workflow at `.github/workflows/daily-digest.yml` runs at 15:30 UTC daily. After each run it commits the updated seen-IDs database back to the repo so deduplication is preserved across runs.
+The workflow at `.github/workflows/daily-digest.yml` runs at 15:30 UTC daily and commits the updated dedup DB back to the repo after each run.
 
-**Required secrets** (Settings → Secrets and variables → Actions):
+**Secrets to add** (Settings → Secrets → Actions):
 
 | Secret | Required | Description |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | yes | Claude API key |
 | `RESEND_API_KEY` | yes | Resend API key |
-| `GH_PAT` | no | GitHub PAT — only needed if `projects` references private repos |
+| `GH_PAT` | no | GitHub PAT — only needed for private repos in `projects` |
 
-`GITHUB_TOKEN` is auto-provided by Actions and is sufficient for public repos.
-
-**Manual trigger:** Actions → Daily Email Digest → Run workflow. Useful for testing config changes without waiting for the cron.
-
-**Changing the schedule:**
-
+**To change the schedule**, edit the cron in `.github/workflows/daily-digest.yml`:
 ```yaml
-# .github/workflows/daily-digest.yml
 schedule:
   - cron: '30 15 * * *'  # 15:30 UTC daily
 ```
 
+**To trigger manually:** Actions → Daily Email Digest → Run workflow.
+
 ---
 
-## CLI reference
+## CLI
 
-```
+```bash
 uv run mango [OPTIONS]
 ```
 
 | Flag | Description |
 |---|---|
-| `--dry-run` | Skip email send; write rendered HTML to project root instead. |
-| `--user NAME` | Run only the config matching `config/NAME.yaml`. |
-| `--entity NAME` | Run only the named entity (exact match). Useful for debugging a single source. |
-| `--config-dir DIR` | Directory to scan for user YAML configs. Default: `config/`. |
-| `--config PATH` | Load a single YAML file directly (legacy single-user mode). |
+| `--dry-run` | Skip send — writes HTML to project root instead |
+| `--user NAME` | Run only `config/NAME.yaml` |
+| `--entity NAME` | Run only the named entity (exact match) |
+| `--config-dir DIR` | Config directory (default: `config/`) |
+| `--config PATH` | Single YAML file (legacy mode) |
 
 ---
 
 ## Resend setup
 
 1. Create an account at [resend.com](https://resend.com)
-2. Add and verify your sending domain (DNS TXT/MX records — usually a few minutes)
-3. Generate an API key with send permissions → set as `RESEND_API_KEY`
-4. Set `email_from` in your config to an address on your verified domain
+2. Verify your sending domain (DNS records — usually a few minutes)
+3. Generate an API key → set as `RESEND_API_KEY`
+4. Set `email_from` to an address on your verified domain
 
-Without domain verification, Resend rejects all sends. Use `--dry-run` to validate your config first.
+Use `--dry-run` to validate config before dealing with Resend.
 
 ---
 
-## Environment variables
+## Environment
 
 ```bash
-# .env
 ANTHROPIC_API_KEY=sk-ant-...   # required
-RESEND_API_KEY=re_...          # required for sending (not needed for --dry-run)
-GH_PAT=ghp_...                 # optional — only needed for private project repos
+RESEND_API_KEY=re_...          # required for sending
+GH_PAT=ghp_...                 # optional — private repos only
 ```
+
+Place in `.env` (or `.env.local`) — both are auto-loaded.
 
 ---
 
-## Project structure
+## Stack
 
-```
-mango/
-├── src/mango/
-│   ├── main.py              # entry point, orchestrator
-│   ├── config.py            # YAML loading + dataclasses
-│   ├── dedup.py             # SQLite seen-IDs cache
-│   ├── agent/
-│   │   ├── researcher.py    # per-entity Claude analysis
-│   │   ├── recommender.py   # build-vs-integrate suggestions
-│   │   └── vision.py        # frame vision analysis
-│   ├── sources/
-│   │   ├── youtube.py       # yt-dlp + transcripts + frames
-│   │   ├── rss.py           # feedparser
-│   │   ├── api.py           # JSON API handler
-│   │   └── web.py           # Playwright web fetcher
-│   └── digest/
-│       ├── formatter.py     # Jinja2 rendering
-│       └── sender.py        # Resend API
-├── config/                  # user YAML configs (gitignored)
-├── data/                    # SQLite dedup DBs (gitignored)
-├── logo.svg
-└── pyproject.toml
-```
+Python 3.12 · [Anthropic Claude](https://anthropic.com) · [yt-dlp](https://github.com/yt-dlp/yt-dlp) · [feedparser](https://feedparser.readthedocs.io) · [Playwright](https://playwright.dev/python/) · [Resend](https://resend.com) · SQLite · GitHub Actions
 
 ---
 

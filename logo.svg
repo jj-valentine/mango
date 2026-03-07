@@ -1,79 +1,112 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="200" height="220">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 224">
   <defs>
-    <!-- Mango body gradient -->
-    <radialGradient id="mangoGrad" cx="45%" cy="40%" r="60%">
-      <stop offset="0%"   stop-color="#FFD95A"/>
-      <stop offset="55%"  stop-color="#F4931A"/>
-      <stop offset="100%" stop-color="#D95E0A"/>
+
+    <!-- Flesh: warm gold radial, bright centre -->
+    <radialGradient id="flesh" cx="40%" cy="36%" r="62%" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#FFF9CC"/>
+      <stop offset="38%"  stop-color="#FFE04A"/>
+      <stop offset="100%" stop-color="#F4A81A"/>
     </radialGradient>
-    <!-- Leaf gradient -->
-    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%"   stop-color="#6DBF4A"/>
-      <stop offset="100%" stop-color="#3D8A28"/>
+
+    <!-- Skin: sunset orange -->
+    <radialGradient id="skin" cx="36%" cy="30%" r="66%" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#FFCA40"/>
+      <stop offset="52%"  stop-color="#F4931A"/>
+      <stop offset="100%" stop-color="#C05800"/>
+    </radialGradient>
+
+    <!-- Leaf -->
+    <linearGradient id="leafg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60C448"/>
+      <stop offset="100%" stop-color="#2E8020"/>
     </linearGradient>
-    <!-- Envelope gradient -->
-    <linearGradient id="envGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%"   stop-color="#FFF8ED"/>
-      <stop offset="100%" stop-color="#F5E0C0"/>
-    </linearGradient>
-    <!-- Drop shadow -->
-    <filter id="shadow" x="-10%" y="-5%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#00000022"/>
+
+    <!--
+      Grid pattern = the "hedgehog cut" of a mango —
+      each scored cube reads as a digest content card.
+      20 × 20 units with 1.5px gap + rounded corners.
+    -->
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect x="1.5" y="1.5" width="17" height="17" rx="2.5"
+            fill="#FFF8D0" fill-opacity="0.55"
+            stroke="#B87010" stroke-width="0.9" stroke-opacity="0.28"/>
+    </pattern>
+
+    <!-- Clip to the flesh boundary -->
+    <clipPath id="fc">
+      <path d="M100 38
+               C134 38,170 64,170 102
+               C170 142,150 168,100 170
+               C50 168,30 142,30 102
+               C30 64,66 38,100 38Z"/>
+    </clipPath>
+
+    <!-- Soft ambient shadow on the mango body -->
+    <filter id="shadow" x="-20%" y="-14%" width="145%" height="145%">
+      <feDropShadow dx="0" dy="6" stdDeviation="9"
+                    flood-color="#BF5800" flood-opacity="0.26"/>
     </filter>
+
+    <!-- Specular highlight -->
+    <radialGradient id="shine" cx="32%" cy="26%" r="44%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.48"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
   </defs>
 
-  <!-- Mango body -->
-  <ellipse
-    cx="100" cy="95"
-    rx="58" ry="72"
-    fill="url(#mangoGrad)"
-    filter="url(#shadow)"
-  />
+  <!-- ─── MANGO BODY ──────────────────────────────────── -->
 
-  <!-- Mango highlight -->
-  <ellipse
-    cx="82" cy="68"
-    rx="18" ry="24"
-    fill="white"
-    opacity="0.18"
-    transform="rotate(-20, 82, 68)"
-  />
+  <!-- Outer skin (larger shape, provides the coloured border) -->
+  <path d="M100 22
+           C140 22,182 54,182 102
+           C182 152,158 180,100 182
+           C42 180,18 152,18 102
+           C18 54,60 22,100 22Z"
+        fill="url(#skin)" filter="url(#shadow)"/>
 
-  <!-- Stem -->
-  <rect x="97" y="20" width="6" height="16" rx="3" fill="#6B4226"/>
+  <!-- Inner flesh -->
+  <path d="M100 38
+           C134 38,170 64,170 102
+           C170 142,150 168,100 170
+           C50 168,30 142,30 102
+           C30 64,66 38,100 38Z"
+        fill="url(#flesh)"/>
 
-  <!-- Leaf -->
-  <path
-    d="M100 24 C115 10, 148 12, 145 30 C130 28, 112 32, 100 24Z"
-    fill="url(#leafGrad)"
-  />
-  <!-- Leaf vein -->
-  <path
-    d="M100 24 C118 22, 140 26, 145 30"
-    stroke="#2E6B18" stroke-width="0.8" fill="none" opacity="0.5"
-  />
+  <!-- Scored grid — digest cards inside the mango -->
+  <rect x="18" y="22" width="164" height="160"
+        fill="url(#grid)" clip-path="url(#fc)"/>
 
-  <!-- Envelope body (bottom of mango, slightly overlapping) -->
-  <rect x="62" y="148" width="76" height="48" rx="4" fill="url(#envGrad)" stroke="#D4A46A" stroke-width="1.2"/>
+  <!-- Specular sheen over flesh -->
+  <path d="M100 38
+           C134 38,170 64,170 102
+           C170 142,150 168,100 170
+           C50 168,30 142,30 102
+           C30 64,66 38,100 38Z"
+        fill="url(#shine)"/>
 
-  <!-- Envelope flap (open, folded up) -->
-  <path
-    d="M62 148 L100 172 L138 148Z"
-    fill="#EDD09A" stroke="#D4A46A" stroke-width="1.2" stroke-linejoin="round"
-  />
+  <!-- ─── STEM ──────────────────────────────────────── -->
+  <path d="M100 22 C100 16,100 10,101 5"
+        stroke="#6B3A10" stroke-width="3.5"
+        stroke-linecap="round" fill="none"/>
 
-  <!-- Envelope diagonal lines (V crease lines from corners to centre-bottom) -->
-  <line x1="62" y1="196" x2="100" y2="172" stroke="#D4A46A" stroke-width="0.9" opacity="0.7"/>
-  <line x1="138" y1="196" x2="100" y2="172" stroke="#D4A46A" stroke-width="0.9" opacity="0.7"/>
+  <!-- ─── LEAF ──────────────────────────────────────── -->
+  <path d="M100 14 C114 2,146 0,148 18
+           C130 14,114 17,100 22Z"
+        fill="url(#leafg)"/>
+  <!-- Midrib vein -->
+  <path d="M100 14 C120 8,136 10,148 18"
+        stroke="#236620" stroke-width="0.8"
+        fill="none" opacity="0.55"/>
 
-  <!-- Wordmark -->
-  <text
-    x="100" y="212"
-    font-family="ui-monospace, 'SF Mono', 'Cascadia Code', monospace"
-    font-size="22"
-    font-weight="600"
-    letter-spacing="3"
-    fill="#2D2D2D"
-    text-anchor="middle"
-  >mango</text>
+  <!-- ─── WORDMARK ──────────────────────────────────── -->
+  <text x="100" y="208"
+        font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-size="19" font-weight="600" letter-spacing="7"
+        fill="#1C1C1C" text-anchor="middle">mango</text>
+
+  <!-- Orange accent bar under wordmark -->
+  <line x1="60" y1="215" x2="140" y2="215"
+        stroke="#F4931A" stroke-width="2.5" stroke-linecap="round"/>
+
 </svg>
