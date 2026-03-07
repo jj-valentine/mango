@@ -1,112 +1,103 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 224">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 400 400">
   <defs>
 
-    <!-- Flesh: warm gold radial, bright centre -->
-    <radialGradient id="flesh" cx="40%" cy="36%" r="62%" gradientUnits="objectBoundingBox">
-      <stop offset="0%"   stop-color="#FFF9CC"/>
-      <stop offset="38%"  stop-color="#FFE04A"/>
-      <stop offset="100%" stop-color="#F4A81A"/>
-    </radialGradient>
-
-    <!-- Skin: sunset orange -->
-    <radialGradient id="skin" cx="36%" cy="30%" r="66%" gradientUnits="objectBoundingBox">
-      <stop offset="0%"   stop-color="#FFCA40"/>
-      <stop offset="52%"  stop-color="#F4931A"/>
-      <stop offset="100%" stop-color="#C05800"/>
-    </radialGradient>
-
-    <!-- Leaf -->
-    <linearGradient id="leafg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#60C448"/>
-      <stop offset="100%" stop-color="#2E8020"/>
-    </linearGradient>
-
-    <!--
-      Grid pattern = the "hedgehog cut" of a mango —
-      each scored cube reads as a digest content card.
-      20 × 20 units with 1.5px gap + rounded corners.
-    -->
-    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-      <rect x="1.5" y="1.5" width="17" height="17" rx="2.5"
-            fill="#FFF8D0" fill-opacity="0.55"
-            stroke="#B87010" stroke-width="0.9" stroke-opacity="0.28"/>
-    </pattern>
-
-    <!-- Clip to the flesh boundary -->
-    <clipPath id="fc">
-      <path d="M100 38
-               C134 38,170 64,170 102
-               C170 142,150 168,100 170
-               C50 168,30 142,30 102
-               C30 64,66 38,100 38Z"/>
-    </clipPath>
-
-    <!-- Soft ambient shadow on the mango body -->
-    <filter id="shadow" x="-20%" y="-14%" width="145%" height="145%">
-      <feDropShadow dx="0" dy="6" stdDeviation="9"
-                    flood-color="#BF5800" flood-opacity="0.26"/>
+    <!-- Watercolor displacement: soft organic edge bleed -->
+    <filter id="wc" x="-25%" y="-25%" width="150%" height="150%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.024 0.020"
+                    numOctaves="4" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise"
+                         scale="8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="wcl" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.016 0.013"
+                    numOctaves="3" seed="19" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise"
+                         scale="13" xChannelSelector="R" yChannelSelector="G"/>
     </filter>
 
-    <!-- Specular highlight -->
-    <radialGradient id="shine" cx="32%" cy="26%" r="44%">
-      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.48"/>
-      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    <!-- Mango flesh: warm gold centre bleeding to deep orange -->
+    <radialGradient id="mbase" cx="42%" cy="36%" r="62%">
+      <stop offset="0%"   stop-color="#FFE95C"/>
+      <stop offset="50%"  stop-color="#F4921A"/>
+      <stop offset="100%" stop-color="#C86010"/>
     </radialGradient>
+
+    <!-- Curved text paths (radius 158, centre 200,200) -->
+    <path id="tArc" d="M 42,200 A 158,158 0 0,1 358,200"/>
+    <path id="bArc" d="M 42,200 A 158,158 0 0,0 358,200"/>
 
   </defs>
 
-  <!-- ─── MANGO BODY ──────────────────────────────────── -->
+  <!-- ── BADGE RINGS ──────────────────────────────────────── -->
+  <circle cx="200" cy="200" r="192" fill="#241A12"/>
+  <circle cx="200" cy="200" r="177" fill="#FFFEF6"/>
+  <!-- inner decorative ring -->
+  <circle cx="200" cy="200" r="170" fill="none"
+          stroke="#241A12" stroke-width="0.9" opacity="0.2"/>
 
-  <!-- Outer skin (larger shape, provides the coloured border) -->
-  <path d="M100 22
-           C140 22,182 54,182 102
-           C182 152,158 180,100 182
-           C42 180,18 152,18 102
-           C18 54,60 22,100 22Z"
-        fill="url(#skin)" filter="url(#shadow)"/>
+  <!-- ── WATERCOLOR MANGO ─────────────────────────────────── -->
 
-  <!-- Inner flesh -->
-  <path d="M100 38
-           C134 38,170 64,170 102
-           C170 142,150 168,100 170
-           C50 168,30 142,30 102
-           C30 64,66 38,100 38Z"
-        fill="url(#flesh)"/>
+  <!-- Layer 1 — base orange body (main mango silhouette) -->
+  <path d="M200,86 C234,84 256,114 254,155 C252,198 234,222 200,220
+           C166,218 146,194 148,152 C150,110 168,88 200,86Z"
+        fill="url(#mbase)" fill-opacity="0.87" filter="url(#wc)"/>
 
-  <!-- Scored grid — digest cards inside the mango -->
-  <rect x="18" y="22" width="164" height="160"
-        fill="url(#grid)" clip-path="url(#fc)"/>
+  <!-- Layer 2 — warm shadow (right/lower side) -->
+  <ellipse cx="222" cy="170" rx="38" ry="52"
+           fill="#B04C00" fill-opacity="0.26" filter="url(#wcl)"/>
 
-  <!-- Specular sheen over flesh -->
-  <path d="M100 38
-           C134 38,170 64,170 102
-           C170 142,150 168,100 170
-           C50 168,30 142,30 102
-           C30 64,66 38,100 38Z"
-        fill="url(#shine)"/>
+  <!-- Layer 3 — bright yellow centre wash -->
+  <ellipse cx="190" cy="143" rx="36" ry="46"
+           fill="#FFE860" fill-opacity="0.52" filter="url(#wc)"/>
 
-  <!-- ─── STEM ──────────────────────────────────────── -->
-  <path d="M100 22 C100 16,100 10,101 5"
-        stroke="#6B3A10" stroke-width="3.5"
-        stroke-linecap="round" fill="none"/>
+  <!-- Layer 4 — warm blush, left edge -->
+  <ellipse cx="170" cy="158" rx="20" ry="32"
+           fill="#E87428" fill-opacity="0.18" filter="url(#wcl)"/>
 
-  <!-- ─── LEAF ──────────────────────────────────────── -->
-  <path d="M100 14 C114 2,146 0,148 18
-           C130 14,114 17,100 22Z"
-        fill="url(#leafg)"/>
-  <!-- Midrib vein -->
-  <path d="M100 14 C120 8,136 10,148 18"
-        stroke="#236620" stroke-width="0.8"
-        fill="none" opacity="0.55"/>
+  <!-- Layer 5 — specular white spot -->
+  <ellipse cx="180" cy="130" rx="13" ry="16"
+           fill="#FFFFFF" fill-opacity="0.52" filter="url(#wc)"/>
 
-  <!-- ─── WORDMARK ──────────────────────────────────── -->
-  <text x="100" y="208"
-        font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif"
-        font-size="19" font-weight="600" letter-spacing="7"
-        fill="#1C1C1C" text-anchor="middle">mango</text>
+  <!-- Stem -->
+  <path d="M 201,88 C 200,80 201,73 202,66"
+        stroke="#7B421A" stroke-width="3.5" stroke-linecap="round" fill="none"/>
 
-  <!-- Orange accent bar under wordmark -->
-  <line x1="60" y1="215" x2="140" y2="215"
-        stroke="#F4931A" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Leaf — two overlapping washes -->
+  <path d="M 200,77 C 216,62 248,60 249,82 C 229,77 213,80 200,88Z"
+        fill="#54B83A" fill-opacity="0.86" filter="url(#wcl)"/>
+  <path d="M 200,75 C 218,63 242,65 246,80 C 228,75 213,78 200,86Z"
+        fill="#8ED85C" fill-opacity="0.48" filter="url(#wc)"/>
+  <!-- leaf midrib -->
+  <path d="M 200,77 C 220,71 236,73 249,82"
+        stroke="#246820" stroke-width="0.9" fill="none" opacity="0.55"/>
+
+  <!-- ── WORDMARK ZONE ─────────────────────────────────────── -->
+  <!-- top rule -->
+  <line x1="72" y1="232" x2="328" y2="232"
+        stroke="#241A12" stroke-width="1.5" opacity="0.65"/>
+
+  <text x="200" y="263"
+        font-family="Georgia, 'Palatino Linotype', Palatino, serif"
+        font-size="36" font-weight="700" letter-spacing="10"
+        fill="#241A12" text-anchor="middle">mango</text>
+
+  <!-- bottom rule -->
+  <line x1="72" y1="276" x2="328" y2="276"
+        stroke="#241A12" stroke-width="1.5" opacity="0.65"/>
+
+  <!-- ── CIRCULAR TEXT ─────────────────────────────────────── -->
+  <text font-family="Georgia, Palatino, serif"
+        font-size="11.5" letter-spacing="3.5" fill="#241A12">
+    <textPath xlink:href="#tArc" startOffset="50%" text-anchor="middle">
+      DAILY DIGEST  ·  AI CURATED
+    </textPath>
+  </text>
+
+  <text font-family="Georgia, Palatino, serif"
+        font-size="11.5" letter-spacing="3.5" fill="#241A12">
+    <textPath xlink:href="#bArc" startOffset="50%" text-anchor="middle">
+      SELF-HOSTED  ·  OPEN SOURCE
+    </textPath>
+  </text>
 
 </svg>

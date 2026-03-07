@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="logo.svg" alt="mango" width="110"/>
+  <img src="logo.svg" alt="mango" width="180"/>
   <h1>mango</h1>
   <p>Self-hosted Claude-powered daily email digest.<br/>Curates YouTube, RSS, APIs, and web pages into one sharp email.</p>
   <p>
