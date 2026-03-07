@@ -2,12 +2,12 @@
 Async orchestrator — entry point for the daily email digest.
 
 Usage:
-    uv run python -m email_digest.main                              # all users in config/
-    uv run python -m email_digest.main --user james                 # single user
-    uv run python -m email_digest.main --dry-run                    # no email, write HTML
-    uv run python -m email_digest.main --user james --dry-run
-    uv run python -m email_digest.main --entity "Nate B. Jones" --dry-run
-    uv run python -m email_digest.main --config path/to/file.yaml   # legacy single-file
+    uv run mango                                                    # all users in config/
+    uv run mango --user james                                       # single user
+    uv run mango --dry-run                                          # no email, write HTML
+    uv run mango --user james --dry-run
+    uv run mango --entity "Nate B. Jones" --dry-run
+    uv run mango --config path/to/file.yaml                         # legacy single-file
 """
 from __future__ import annotations
 
@@ -203,6 +203,14 @@ async def run_digest(
         print(f"  → {entity.name}…")
         summaries.append(analyze_entity(entity, fc, client=client))
 
+    # ── Phase 3b: Abort if all analyses failed ────────────────────────────
+    analysis_failures = [s for s in summaries if s.error]
+    if analysis_failures and len(analysis_failures) == len(summaries):
+        print(f"[{user_label}] All entity analyses failed — aborting digest.")
+        for s in analysis_failures:
+            print(f"  ✗ {s.entity_name}: {s.error}")
+        return 1
+
     # ── Phase 4: Recommendations ─────────────────────────────────────────
     recs = None
     if config.projects:
@@ -220,13 +228,26 @@ async def run_digest(
     elapsed = time.monotonic() - start
     print(f"[{user_label}] Pipeline complete in {elapsed:.1f}s.")
 
+    # ── Phase 6: Persist dedup cache ─────────────────────────────────────
+    # Write before send so analyzed content is marked seen even if send
+    # fails — prevents re-analysis (and wasted API credits) next run.
+    # Skipped on dry-run so repeated test runs can re-fetch content.
+    if not dry_run:
+        with SeenDB(db_path=db_path) as db:
+            for entity, fc in zip(entities, fetched):
+                for item in fc.items:
+                    url = getattr(item, "url", "")
+                    title = getattr(item, "title", "")
+                    if url:
+                        db.mark_seen(entity.name, url, title)
+
     if dry_run:
         out = _preview_path_for_user(user_label)
         out.write_text(html_body)
         print(f"[{user_label}] Dry run → {out} (not sent)")
         return 0
 
-    # ── Phase 6: Send ─────────────────────────────────────────────────────
+    # ── Phase 7: Send ─────────────────────────────────────────────────────
     print(f"[{user_label}] Sending email to {config.digest.email_to}…")
     try:
         msg_id = send_email(html_body, plain_body, config)
@@ -234,15 +255,6 @@ async def run_digest(
     except Exception as e:
         print(f"[{user_label}] Email send FAILED: {e}")
         return 1
-
-    # ── Phase 7: Persist dedup cache ─────────────────────────────────────
-    with SeenDB(db_path=db_path) as db:
-        for entity, fc in zip(entities, fetched):
-            for item in fc.items:
-                url = getattr(item, "url", "")
-                title = getattr(item, "title", "")
-                if url:
-                    db.mark_seen(entity.name, url, title)
 
     return 0
 

@@ -6,9 +6,25 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
+from dotenv import dotenv_values
 
 
 _CONFIG_DIR = Path(__file__).parent.parent.parent / "config"
+_PROJECT_ROOT = Path(__file__).parent.parent.parent
+
+
+def _load_env_files() -> None:
+    """Load .env then .env.local, skipping keys already set to non-empty values.
+    This handles the edge case where a shell exports a key as '' (empty string),
+    which standard dotenv override=False treats as 'already set'."""
+    for env_file in [_PROJECT_ROOT / ".env", _PROJECT_ROOT / ".env.local"]:
+        if env_file.exists():
+            for key, value in dotenv_values(env_file).items():
+                if value and not os.environ.get(key):
+                    os.environ[key] = value
+
+
+_load_env_files()
 
 
 @dataclass

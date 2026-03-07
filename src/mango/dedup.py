@@ -24,7 +24,7 @@ class SeenDB:
     def __init__(self, db_path: Path | None = None):
         self._path = db_path or _DEFAULT_DB
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(str(self._path))
+        self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
         self._conn.execute(_SCHEMA)
         self._conn.commit()
 

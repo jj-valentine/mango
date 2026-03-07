@@ -34,6 +34,7 @@ class VideoSummary:
     tool_mentions: list[str] = field(default_factory=list)
     key_concepts: list[str] = field(default_factory=list)
     frame_descriptions: list[dict] = field(default_factory=list)  # [{ts, url, description}]
+    error: str = ""
 
 
 @dataclass
@@ -118,6 +119,11 @@ def _analyze_youtube(
         vs = _analyze_single_video(entity, video, client)
         video_summaries.append(vs)
 
+    failed = [vs for vs in video_summaries if vs.error]
+    entity_error = ""
+    if failed and len(failed) == len(video_summaries):
+        entity_error = f"All {len(failed)} video analysis calls failed: {failed[0].error}"
+
     return EntitySummary(
         entity_name=entity.name,
         model=entity.model,
@@ -125,6 +131,7 @@ def _analyze_youtube(
         video_summaries=video_summaries,
         has_new_content=True,
         skipped_count=content.skipped_count,
+        error=entity_error,
     )
 
 
@@ -176,6 +183,9 @@ def _analyze_single_video(
     except Exception as e:
         print(f"[researcher] Analysis failed for {video.title}: {e}")
         analysis_text = f"[Analysis failed: {e}]"
+        analysis_error = str(e)
+    else:
+        analysis_error = ""
 
     tools = _extract_json_list(analysis_text, "TOOLS:")
     concepts = _extract_json_list(analysis_text, "CONCEPTS:")
@@ -205,6 +215,7 @@ def _analyze_single_video(
         tool_mentions=tools,
         key_concepts=concepts,
         frame_descriptions=frame_descs,
+        error=analysis_error,
     )
 
 
@@ -311,9 +322,11 @@ def _analyze_feed(
             messages=[{"role": "user", "content": prompt}],
         )
         analysis_text = response.content[0].text
+        analysis_error = ""
     except Exception as e:
         print(f"[researcher] Feed analysis failed for {entity.name}: {e}")
         analysis_text = f"[Analysis failed: {e}]"
+        analysis_error = str(e)
 
     tools = _extract_json_list(analysis_text, "TOOLS:")
     concepts = _extract_json_list(analysis_text, "CONCEPTS:")
@@ -341,6 +354,7 @@ def _analyze_feed(
         feed_summaries=feed_summaries,
         has_new_content=True,
         skipped_count=content.skipped_count,
+        error=analysis_error,
     )
 
 

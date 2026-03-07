@@ -27,7 +27,9 @@ def fetch_rss_feed(
     skipped = 0
 
     for entry in feed.entries:
-        item_id = entry.get("id") or entry.get("link", "")
+        # Use link as dedup key — matches what mark_seen stores (item.url).
+        # entry.id (Atom GUID) can differ from link, causing dedup misses.
+        item_id = entry.get("link", "") or entry.get("id", "")
         if seen_ids and item_id in seen_ids:
             skipped += 1
             continue

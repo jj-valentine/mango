@@ -70,7 +70,8 @@ def fetch_youtube_channel(
         if entry is None:
             continue
         video_id = entry.get("id", "")
-        if seen_ids and video_id in seen_ids:
+        video_url = f"https://www.youtube.com/watch?v={video_id}"
+        if seen_ids and video_url in seen_ids:
             skipped += 1
             continue
         if len(videos) >= max_videos:
