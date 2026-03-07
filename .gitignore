@@ -16,6 +16,12 @@ dist/
 .env.local
 .env.*.local
 
+# Personal configs (users create their own from entities.example.yaml)
+# Keep example + any config prefixed with _ in repo; ignore real user configs
+config/*.yaml
+!config/entities.example.yaml
+!config/_*.yaml
+
 # Data (screenshots committed; DB committed; raw video downloads NOT)
 data/videos/
 data/tmp/
