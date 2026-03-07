@@ -12,7 +12,7 @@
 
 ---
 
-> Mangoes are genuinely good for digestion — fiber, polyphenols, ~83% water — and [a randomized trial confirmed it](https://pmc.ncbi.nlm.nih.gov/articles/PMC10084975/). The catch is too many mangoes will wreck your afternoon. Same principle applies here: one curated daily digest keeps you sharp. Fifteen RSS feeds firing every hour does not.
+> Research shows mangoes are genuinely good for digestion. The catch is, too many of them will wreck your afternoon. The same principle applies here — an entirely customizable, AI-powered, intelligently curated digest keeps you sharp and feeling smart. Fifteen bloated RSS feeds firing off every hour does not.
 
 ---
 
