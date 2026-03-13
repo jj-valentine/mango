@@ -79,6 +79,10 @@ Then open `digest_preview_mom.html` in a browser to review.
 | `config/entities.example.yaml` | Public reference config |
 | `.env.local` | Local API keys (gitignored) |
 
+## OpenRouter (future consideration)
+- Currently uses `ANTHROPIC_API_KEY` directly; swapping to OpenRouter would give fallbacks, unified cost dashboard, and one key
+- Model tiering (Haiku vs Sonnet) already in place — OpenRouter makes this cleaner with no other changes needed
+
 ## Hookify Rules (global, `~/.claude/`)
 - `hookify.session-start.local.md` — fires on every prompt; reminds to read CLAUDE.md + HANDOFF.md
 - `hookify.session-end.local.md` — fires on stop; full checklist (HANDOFF, git, attribution, tools)
