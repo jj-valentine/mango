@@ -65,6 +65,34 @@ def fetch_youtube_channel(
         if not entries:
             # Single video URL, not a channel
             entries = [playlist_info]
+        else:
+            # yt-dlp sometimes returns channel *tabs* (Videos, Shorts, Live) as
+            # top-level entries instead of actual videos. Tabs lack a `duration`
+            # field and have channel IDs (not 11-char video IDs) as their `id`.
+            # Detect this and re-extract from the Videos tab.
+            # Real videos have 11-char IDs and positive duration; tabs have channel IDs and duration=0
+            real_videos = [e for e in entries if e and (e.get("duration") or 0) > 0 and len(e.get("id", "")) == 11]
+            if not real_videos:
+                videos_tab = next(
+                    (
+                        e for e in entries
+                        if e and (
+                            (e.get("url", "") or "").rstrip("/").endswith("/videos")
+                            or (e.get("webpage_url", "") or "").rstrip("/").endswith("/videos")
+                        )
+                    ),
+                    entries[0] if entries else None,
+                )
+                tab_url = (videos_tab or {}).get("webpage_url") or (videos_tab or {}).get("url")
+                if videos_tab and tab_url:
+                    print(f"[youtube] Detected channel tabs — re-fetching Videos tab: {tab_url}")
+                    try:
+                        tab_info = ydl.extract_info(tab_url, download=False)
+                        entries = tab_info.get("entries", []) or []
+                        print(f"[youtube] Videos tab returned {len(entries)} entries")
+                    except Exception as e:
+                        print(f"[youtube] Failed to re-extract videos tab: {e}")
+                        entries = []
 
     for entry in entries:
         if entry is None:
