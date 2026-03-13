@@ -12,7 +12,7 @@
 
 ---
 
-> Research shows mangoes are genuinely good for digestion. The catch is, too many of them will wreck your afternoon. The same principle applies here — an entirely customizable, AI-powered, intelligently curated digest keeps you sharp and feeling smart. Fifteen bloated RSS feeds firing off every hour does not.
+> Research shows mangoes are genuinely good for digestion. The catch is, too many of them will wreck your afternoon. The same principle applies here — an entirely customizable, AI-powered, self-curated digest keeps you feeling sharp. Fifteen bloated RSS feeds firing off every hour does not.
 
 ---
 
