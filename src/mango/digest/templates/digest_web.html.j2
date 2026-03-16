@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +11,33 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
+      /* Non-theme constants */
+      --sans:         'DM Sans', system-ui, sans-serif;
+      --mono:         'IBM Plex Mono', ui-monospace, monospace;
+      --radius:       6px;
+      --radius-lg:    10px;
+
+      /* Light theme (default) */
+      --bg:           #ffffff;
+      --bg-card:      #ffffff;
+      --bg-card-alt:  #f6f8fa;
+      --bg-hover:     #f3f4f6;
+      --border:       #d1d9e0;
+      --border-mid:   #b0b8c1;
+      --fg:           #1f2328;
+      --fg-sub:       #59636e;
+      --fg-dim:       #8b949e;
+      --fg-ghost:     #b0b8c1;
+      --accent:       #3b82f6;
+      --accent-dim:   rgba(59,130,246,0.08);
+      --accent-glow:  rgba(59,130,246,0.15);
+      --lime:         #65a30d;
+      --timestamp:    #8250df;
+      --timestamp-bg: rgba(130,80,223,0.08);
+      --code-fg:      #2563eb;
+    }
+
+    [data-theme="dark"] {
       --bg:           #0a0a0a;
       --bg-card:      #111111;
       --bg-card-alt:  #141414;
@@ -25,17 +52,16 @@
       --accent-dim:   rgba(59,130,246,0.12);
       --accent-glow:  rgba(59,130,246,0.25);
       --lime:         #84cc16;
-      --sans:         'DM Sans', system-ui, sans-serif;
-      --mono:         'IBM Plex Mono', ui-monospace, monospace;
-      --radius:       6px;
-      --radius-lg:    10px;
+      --timestamp:    #bc8cff;
+      --timestamp-bg: rgba(188,140,255,0.1);
+      --code-fg:      #93c5fd;
     }
 
     html { background: var(--bg); color: var(--fg); }
 
     body {
       font-family: var(--sans);
-      font-size: 14px;
+      font-size: 17px;
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       background: var(--bg);
@@ -43,13 +69,42 @@
       padding: 48px 16px 80px;
     }
 
-    /* ── Layout ─────────────────────────────────────────────── */
+    /* -- Layout --------------------------------------------------------- */
     .page {
-      max-width: 720px;
+      max-width: 880px;
       margin: 0 auto;
     }
 
-    /* ── Header ─────────────────────────────────────────────── */
+    /* -- Theme toggle --------------------------------------------------- */
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--fg-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, color 0.15s;
+      z-index: 100;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--border-mid);
+      color: var(--fg-sub);
+    }
+
+    [data-theme="light"] .icon-sun { display: none; }
+    [data-theme="light"] .icon-moon { display: block; }
+    [data-theme="dark"] .icon-sun { display: block; }
+    [data-theme="dark"] .icon-moon { display: none; }
+
+    /* -- Header --------------------------------------------------------- */
     .header {
       padding-bottom: 40px;
       border-bottom: 1px solid var(--border);
@@ -58,7 +113,7 @@
 
     .header-eyebrow {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 13px;
       font-weight: 500;
       letter-spacing: 0.18em;
       text-transform: uppercase;
@@ -68,7 +123,7 @@
 
     .header-title {
       font-family: var(--sans);
-      font-size: clamp(32px, 5vw, 44px);
+      font-size: clamp(36px, 5.5vw, 50px);
       font-weight: 300;
       letter-spacing: -0.03em;
       color: var(--fg);
@@ -82,15 +137,15 @@
 
     .header-meta {
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 14px;
       color: var(--fg-dim);
       letter-spacing: 0.04em;
     }
 
-    /* ── Section labels ─────────────────────────────────────── */
+    /* -- Section labels ------------------------------------------------- */
     .section-label {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 12px;
       font-weight: 500;
       letter-spacing: 0.24em;
       text-transform: uppercase;
@@ -98,7 +153,7 @@
       margin-bottom: 16px;
     }
 
-    /* ── Entity block ───────────────────────────────────────── */
+    /* -- Entity block --------------------------------------------------- */
     .entity-block {
       margin-bottom: 40px;
     }
@@ -111,7 +166,7 @@
     }
 
     .entity-name {
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 600;
       letter-spacing: -0.02em;
       color: var(--fg);
@@ -119,7 +174,7 @@
 
     .badge {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 12px;
       font-weight: 500;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -134,7 +189,7 @@
       border: 1px solid var(--border);
     }
 
-    /* ── Video cards ────────────────────────────────────────── */
+    /* -- Video cards ----------------------------------------------------- */
     .video-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -169,8 +224,8 @@
 
     .video-thumb-wrap {
       flex-shrink: 0;
-      width: 96px;
-      height: 54px;
+      width: 120px;
+      height: 68px;
       border-radius: 4px;
       overflow: hidden;
       background: var(--bg-card-alt);
@@ -191,7 +246,7 @@
       align-items: center;
       justify-content: center;
       color: var(--fg-ghost);
-      font-size: 18px;
+      font-size: 22px;
     }
 
     .video-meta {
@@ -200,7 +255,7 @@
     }
 
     .video-title-text {
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 500;
       color: var(--fg-sub);
       line-height: 1.35;
@@ -214,7 +269,7 @@
 
     .video-stats {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 13px;
       color: var(--fg-ghost);
       letter-spacing: 0.03em;
       display: flex;
@@ -236,7 +291,7 @@
 
     .pill {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 12px;
       padding: 1px 6px;
       border-radius: 3px;
       background: var(--accent-dim);
@@ -282,9 +337,9 @@
       border-top: 1px solid var(--border);
     }
 
-    /* ── Analysis prose ─────────────────────────────────────── */
+    /* -- Analysis prose -------------------------------------------------- */
     .analysis {
-      font-size: 13px;
+      font-size: 16px;
       color: var(--fg-sub);
       line-height: 1.75;
       padding-top: 18px;
@@ -295,7 +350,7 @@
 
     .analysis h1,
     .analysis h2 {
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 600;
       color: var(--fg);
       letter-spacing: -0.01em;
@@ -308,19 +363,16 @@
     .analysis h2:first-child { margin-top: 0; }
 
     .analysis h3 {
-      font-family: var(--mono);
-      font-size: 9px;
-      font-weight: 500;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--accent);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--fg);
       margin: 16px 0 7px;
     }
 
     .analysis h4 {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--fg-sub);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--fg);
       margin: 12px 0 5px;
     }
 
@@ -340,7 +392,7 @@
     }
 
     .analysis em, .analysis i {
-      color: rgba(255,255,255,0.5);
+      color: var(--fg-sub);
       font-style: italic;
     }
 
@@ -350,18 +402,35 @@
     }
     .analysis a:hover { text-decoration: underline; }
 
+    /* Timestamp links (YouTube) — purple pill */
+    .analysis a[href*="youtu"],
+    .recs-content a[href*="youtu"] {
+      color: var(--timestamp);
+      font-family: var(--mono);
+      font-size: 13px;
+      background: var(--timestamp-bg);
+      padding: 1px 6px;
+      border-radius: 3px;
+      text-decoration: none;
+    }
+
+    .analysis a[href*="youtu"]:hover,
+    .recs-content a[href*="youtu"]:hover {
+      text-decoration: underline;
+    }
+
     .analysis code {
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 13px;
       background: var(--accent-dim);
       border: 1px solid rgba(59,130,246,0.18);
       padding: 1px 5px;
       border-radius: 3px;
-      color: #93c5fd;
+      color: var(--code-fg);
     }
 
     .analysis pre {
-      background: #0d0d0d;
+      background: var(--bg-card-alt);
       border: 1px solid var(--border);
       padding: 12px 14px;
       border-radius: var(--radius);
@@ -373,7 +442,7 @@
       background: none;
       border: none;
       padding: 0;
-      color: #93c5fd;
+      color: var(--code-fg);
     }
 
     .analysis blockquote {
@@ -388,7 +457,7 @@
     .analysis table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
+      font-size: 14px;
       margin: 10px 0;
     }
 
@@ -398,7 +467,7 @@
       font-weight: 500;
       color: var(--fg-dim);
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 12px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       border-bottom: 1px solid var(--border-mid);
@@ -422,7 +491,7 @@
 
     .frames-label {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 12px;
       font-weight: 500;
       letter-spacing: 0.22em;
       text-transform: uppercase;
@@ -440,7 +509,7 @@
 
     .frame-img {
       width: 100%;
-      height: 72px;
+      height: 90px;
       object-fit: cover;
       display: block;
       border-radius: 4px;
@@ -450,8 +519,8 @@
 
     .frame-ts {
       font-family: var(--mono);
-      font-size: 9px;
-      color: var(--accent);
+      font-size: 12px;
+      color: var(--timestamp);
       text-decoration: none;
       display: block;
       margin: 4px 0 2px;
@@ -460,26 +529,26 @@
 
     .frame-desc {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 12px;
       color: var(--fg-ghost);
       line-height: 1.45;
     }
 
-    /* ── Skipped ────────────────────────────────────────────── */
+    /* -- Skipped -------------------------------------------------------- */
     .skipped-notice {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 13px;
       color: var(--fg-ghost);
       padding: 8px 18px 14px;
       letter-spacing: 0.03em;
     }
 
-    /* ── Feed analysis ──────────────────────────────────────── */
+    /* -- Feed analysis -------------------------------------------------- */
     .feed-body {
       padding: 18px;
     }
 
-    /* ── Recommendations ────────────────────────────────────── */
+    /* -- Recommendations ------------------------------------------------ */
     .recs-card {
       background: var(--accent-dim);
       border: 1px solid rgba(59,130,246,0.2);
@@ -489,13 +558,20 @@
       margin-top: 40px;
     }
 
-    .recs-header {
+    .recs-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 16px 20px;
-      border-bottom: 1px solid rgba(59,130,246,0.15);
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
+    .recs-trigger-text { flex: 1; }
+
     .recs-title {
-      font-size: 15px;
+      font-size: 18px;
       font-weight: 600;
       letter-spacing: -0.02em;
       color: var(--fg);
@@ -504,7 +580,7 @@
 
     .recs-subtitle {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 12px;
       font-weight: 500;
       letter-spacing: 0.16em;
       text-transform: uppercase;
@@ -512,13 +588,34 @@
     }
 
     .recs-body {
-      padding: 16px 20px 20px;
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .recs-card.is-open .recs-body {
+      grid-template-rows: 1fr;
+    }
+
+    .recs-body-inner {
+      overflow: hidden;
+    }
+
+    .recs-body-content {
+      padding: 0 20px 20px;
+      border-top: 1px solid rgba(59,130,246,0.15);
+    }
+
+    .recs-card.is-open .chevron {
+      transform: rotate(180deg);
+      color: var(--accent);
     }
 
     .recs-content {
-      font-size: 13px;
+      font-size: 16px;
       color: var(--fg-sub);
       line-height: 1.75;
+      padding-top: 16px;
     }
 
     .recs-content p { margin: 0 0 8px; }
@@ -528,7 +625,7 @@
     .recs-content h2,
     .recs-content h3 {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 12px;
       font-weight: 500;
       letter-spacing: 0.2em;
       text-transform: uppercase;
@@ -546,16 +643,16 @@
     .recs-content a { color: var(--accent); text-decoration: none; }
     .recs-content code {
       font-family: var(--mono);
-      font-size: 11px;
-      background: rgba(59,130,246,0.1);
+      font-size: 13px;
+      background: var(--accent-dim);
       border: 1px solid rgba(59,130,246,0.18);
       padding: 1px 5px;
       border-radius: 3px;
-      color: #93c5fd;
+      color: var(--code-fg);
     }
     .recs-content hr { border: none; border-top: 1px solid rgba(59,130,246,0.15); margin: 14px 0; }
 
-    /* ── No-new-content ─────────────────────────────────────── */
+    /* -- No-new-content ------------------------------------------------- */
     .no-new-section {
       margin-top: 32px;
       padding-top: 24px;
@@ -564,7 +661,7 @@
 
     .no-new-label {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 12px;
       font-weight: 500;
       letter-spacing: 0.2em;
       text-transform: uppercase;
@@ -574,11 +671,11 @@
 
     .no-new-items {
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 14px;
       color: var(--fg-ghost);
     }
 
-    /* ── Footer ─────────────────────────────────────────────── */
+    /* -- Footer --------------------------------------------------------- */
     .footer {
       margin-top: 48px;
       padding-top: 20px;
@@ -587,12 +684,12 @@
 
     .footer-meta {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 13px;
       color: var(--fg-ghost);
       letter-spacing: 0.04em;
     }
 
-    /* ── Expand-all control ─────────────────────────────────── */
+    /* -- Expand-all control --------------------------------------------- */
     .expand-controls {
       display: flex;
       align-items: center;
@@ -602,7 +699,7 @@
 
     .expand-btn {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 13px;
       font-weight: 500;
       letter-spacing: 0.08em;
       color: var(--fg-dim);
@@ -621,6 +718,17 @@
   </style>
 </head>
 <body>
+
+<!-- Theme toggle -->
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+  </svg>
+  <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
 <div class="page">
 
   <!-- Header -->
@@ -629,7 +737,7 @@
     <h1 class="header-title"><strong>Intelligence</strong> Brief</h1>
     <p class="header-meta">
       {{ summaries | length }} source{{ 's' if summaries | length != 1 else '' }}
-      &nbsp;·&nbsp;
+      &nbsp;&middot;&nbsp;
       {{ summaries | selectattr('has_new_content') | list | length }} with new content
     </p>
   </header>
@@ -645,9 +753,9 @@
     <div class="entity-header">
       <span class="entity-name">{{ summary.entity_name }}</span>
       <span class="badge badge-source">
-        {%- if summary.source_type == 'youtube' -%}▶ youtube
-        {%- elif summary.source_type == 'rss' -%}◈ rss
-        {%- elif summary.source_type == 'api' -%}⬡ api
+        {%- if summary.source_type == 'youtube' -%}&#9654; youtube
+        {%- elif summary.source_type == 'rss' -%}&#9670; rss
+        {%- elif summary.source_type == 'api' -%}&#11045; api
         {%- else -%}{{ summary.source_type }}
         {%- endif -%}
       </span>
@@ -663,30 +771,30 @@
     {% endif %}
 
     {% for video in summary.video_summaries %}
-    <div class="video-card" id="card-{{ loop.index }}">
+    <div class="video-card" id="card-{{ summary.entity_name | replace(' ', '-') }}-{{ loop.index }}">
 
       <!-- Trigger row -->
-      <div class="video-trigger" onclick="toggleCard('card-{{ loop.index }}')">
+      <div class="video-trigger" onclick="toggleCard('card-{{ summary.entity_name | replace(' ', '-') }}-{{ loop.index }}')">
         <div class="video-thumb-wrap">
           {% if video.thumbnail_url %}
           <img class="video-thumb" src="{{ video.thumbnail_url }}" alt="{{ video.title | e }}" loading="lazy">
           {% else %}
-          <div class="thumb-placeholder">▶</div>
+          <div class="thumb-placeholder">&#9654;</div>
           {% endif %}
         </div>
 
         <div class="video-meta">
           <div class="video-title-text">
-            <a href="{{ video.url }}" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none">{{ video.title }}</a>
+            <a href="{{ video.url }}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none">{{ video.title }}</a>
           </div>
           <div class="video-stats">
             <span>{{ video.duration_str }}</span>
             {% if video.view_count %}
-            <span class="stat-dot">·</span>
+            <span class="stat-dot">&middot;</span>
             <span>{{ "{:,}".format(video.view_count) }} views</span>
             {% endif %}
             {% if video.like_count %}
-            <span class="stat-dot">·</span>
+            <span class="stat-dot">&middot;</span>
             <span>{{ "{:,}".format(video.like_count) }} likes</span>
             {% endif %}
           </div>
@@ -713,19 +821,19 @@
             {% endif %}
 
             {% if video.frame_descriptions %}
-            {% set visible_frames = video.frame_descriptions | selectattr('github_url') | list %}
+            {% set visible_frames = video.frame_descriptions | selectattr('image_url') | list %}
             {% if visible_frames %}
             <div class="frames-section">
               <div class="frames-label">Key frames</div>
               <div class="frames-grid">
-                {% for frame in visible_frames[:3] %}
+                {% for frame in visible_frames[:5] %}
                 <div class="frame-item">
-                  <a href="{{ frame.youtube_url }}">
-                    <img class="frame-img" src="{{ frame.github_url }}" alt="Frame at {{ frame.timestamp_sec }}s" loading="lazy">
+                  <a href="{{ frame.youtube_url }}" target="_blank" rel="noopener">
+                    <img class="frame-img" src="{{ frame.image_url }}" alt="Frame at {{ frame.timestamp_sec }}s" loading="lazy">
                   </a>
-                  <a href="{{ frame.youtube_url }}" class="frame-ts">
-                    ↗ {{ frame.timestamp_sec // 60 }}:{{ '%02d' | format(frame.timestamp_sec % 60) }}
-                    {%- if frame.chapter_title %} · {{ frame.chapter_title }}{% endif %}
+                  <a href="{{ frame.youtube_url }}" target="_blank" rel="noopener" class="frame-ts">
+                    &#8599; {{ frame.timestamp_sec // 60 }}:{{ '%02d' | format(frame.timestamp_sec % 60) }}
+                    {%- if frame.chapter_title %} &middot; {{ frame.chapter_title }}{% endif %}
                   </a>
                   {% if frame.description %}
                   <span class="frame-desc">{{ frame.description }}</span>
@@ -741,7 +849,7 @@
       </div>
 
       {% if video.error %}
-      <div class="skipped-notice">⚠ {{ video.error }}</div>
+      <div class="skipped-notice">&#9888; {{ video.error }}</div>
       {% endif %}
     </div>
     {% endfor %}
@@ -768,13 +876,22 @@
 
   <!-- Recommendations -->
   {% if recommendations and recommendations.raw_text %}
-  <div class="recs-card">
-    <div class="recs-header">
-      <div class="recs-title">Today's Recommendations</div>
-      <div class="recs-subtitle">Synthesized from all sources above</div>
+  <div class="recs-card is-open" id="recs-section">
+    <div class="recs-trigger" onclick="toggleRecs()">
+      <div class="recs-trigger-text">
+        <div class="recs-title">Today's Recommendations</div>
+        <div class="recs-subtitle">Synthesized from all sources above</div>
+      </div>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </div>
     <div class="recs-body">
-      <div class="recs-content">{{ recommendations.raw_text | safe }}</div>
+      <div class="recs-body-inner">
+        <div class="recs-body-content">
+          <div class="recs-content">{{ recommendations.raw_text | safe }}</div>
+        </div>
+      </div>
     </div>
   </div>
   {% endif %}
@@ -783,38 +900,59 @@
   {% if no_new_content %}
   <div class="no-new-section">
     <div class="no-new-label">No new content</div>
-    <div class="no-new-items">{{ no_new_content | join(' · ') }}</div>
+    <div class="no-new-items">{{ no_new_content | join(' &middot; ') }}</div>
   </div>
   {% endif %}
 
   <!-- Footer -->
   <footer class="footer">
-    <div class="footer-meta">Generated {{ run_at }} · mango</div>
+    <div class="footer-meta">Generated {{ run_at }} &middot; mango</div>
   </footer>
 
 </div>
 
 <script>
+  // Theme toggle with localStorage persistence
+  (function() {
+    var saved = localStorage.getItem('theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+  })();
+
+  function toggleTheme() {
+    var html = document.documentElement;
+    var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+
   function toggleCard(id) {
-    const card = document.getElementById(id);
-    if (!card) return;
-    card.classList.toggle('is-open');
+    var card = document.getElementById(id);
+    if (card) card.classList.toggle('is-open');
   }
 
   function toggleAll(btn) {
-    const block = btn.closest('.entity-block');
-    const cards = block.querySelectorAll('.video-card');
-    const anyOpen = Array.from(cards).some(c => c.classList.contains('is-open'));
-    cards.forEach(c => {
+    var block = btn.closest('.entity-block');
+    var cards = block.querySelectorAll('.video-card');
+    var anyOpen = Array.from(cards).some(function(c) { return c.classList.contains('is-open'); });
+    cards.forEach(function(c) {
       if (anyOpen) c.classList.remove('is-open');
       else c.classList.add('is-open');
     });
     btn.textContent = anyOpen ? 'expand all' : 'collapse all';
   }
 
-  // Auto-open first card if there's only one
-  document.addEventListener('DOMContentLoaded', () => {
-    const cards = document.querySelectorAll('.video-card');
+  function toggleRecs() {
+    var recs = document.getElementById('recs-section');
+    if (recs) recs.classList.toggle('is-open');
+  }
+
+  // Open all analysis/recs links in new tabs; auto-open single cards
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.analysis a, .recs-content a').forEach(function(a) {
+      a.setAttribute('target', '_blank');
+      a.setAttribute('rel', 'noopener');
+    });
+    var cards = document.querySelectorAll('.video-card');
     if (cards.length === 1) cards[0].classList.add('is-open');
   });
 </script>
