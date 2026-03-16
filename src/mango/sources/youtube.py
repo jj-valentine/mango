@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import subprocess
 import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 from datetime import datetime
 from pathlib import Path
 
@@ -195,13 +196,21 @@ def _parse_video_entry(entry: dict) -> VideoInfo:
     )
 
 
-def _fetch_transcript(video_id: str) -> list[tuple[float, str]] | None:
+def _fetch_transcript(video_id: str, timeout: int = 30) -> list[tuple[float, str]] | None:
     """Fetch transcript as list of (start_sec, text) tuples."""
-    try:
+    def _do_fetch():
         api = YouTubeTranscriptApi()
         segments = api.fetch(video_id)
         return [(s.start, s.text) for s in segments]
+
+    try:
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_do_fetch)
+            return future.result(timeout=timeout)
     except (TranscriptsDisabled, NoTranscriptFound):
+        return None
+    except FuturesTimeout:
+        print(f"[youtube] Transcript fetch timed out for {video_id}")
         return None
     except Exception as e:
         print(f"[youtube] Transcript fetch failed for {video_id}: {e}")
