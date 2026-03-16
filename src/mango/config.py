@@ -56,6 +56,7 @@ class EntityConfig:
 class ProjectConfig:
     repo: str
     files: list[str] = field(default_factory=lambda: ["README.md"])
+    local_path: str = ""
 
 
 @dataclass
@@ -108,7 +109,11 @@ def load_config(config_path: str | None = None) -> AppConfig:
         e = {k: v for k, v in e.items() if k in known}
         entities.append(EntityConfig(sources=sources, **e))
 
-    projects = [ProjectConfig(**p) for p in raw.get("projects", [])]
+    known_proj = {f.name for f in ProjectConfig.__dataclass_fields__.values()}
+    projects = [
+        ProjectConfig(**{k: v for k, v in p.items() if k in known_proj})
+        for p in raw.get("projects", [])
+    ]
 
     return AppConfig(
         digest=digest,

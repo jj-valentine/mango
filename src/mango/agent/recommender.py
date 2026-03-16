@@ -11,6 +11,8 @@ from dataclasses import dataclass, field
 import anthropic
 import requests
 
+from pathlib import Path
+
 from ..config import AppConfig, ProjectConfig
 from .researcher import EntitySummary
 
@@ -51,10 +53,13 @@ def generate_recommendations(
     all_tools = list(dict.fromkeys(all_tools))
     all_concepts = list(dict.fromkeys(all_concepts))
 
-    # Fetch project context from GitHub
+    # Fetch project context (prefer local files, fall back to GitHub API)
     project_sections: list[str] = []
     for project in config.projects:
-        section = _fetch_project_context(project, config.github_pat)
+        if project.local_path:
+            section = _fetch_local_project_context(project)
+        else:
+            section = _fetch_project_context(project, config.github_pat)
         if section:
             project_sections.append(section)
 
@@ -101,6 +106,28 @@ def generate_recommendations(
         recommendations=_parse_recommendations(raw_text),
         raw_text=raw_text,
     )
+
+
+def _fetch_local_project_context(project: ProjectConfig) -> str:
+    """Read project files from a local path on disk."""
+    base = Path(project.local_path).expanduser()
+    if not base.exists():
+        print(f"[recommender] Local path not found: {base}")
+        return _fetch_project_context(project, "")  # fall back to GitHub
+
+    sections = [f"## {project.repo} (local)"]
+    for filename in project.files:
+        filepath = base / filename
+        try:
+            content = filepath.read_text()
+            if len(content) > 3000:
+                content = content[:3000] + "\n...[truncated]"
+            sections.append(f"### {filename}\n{content}")
+        except Exception as e:
+            print(f"[recommender] Could not read {filepath}: {e}")
+            sections.append(f"### {filename}\n(unavailable)")
+
+    return "\n\n".join(sections)
 
 
 def _fetch_project_context(project: ProjectConfig, github_pat: str) -> str:
