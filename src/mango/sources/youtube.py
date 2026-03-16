@@ -47,7 +47,8 @@ def fetch_youtube_channel(
         "getcomments": include_comments,
         "extractor_args": {
             "youtube": {
-                "max_comments": [str(max_comments), "all", "top", "0"],
+                "max_comments": [str(max_comments), "all", "10", "5"],
+                "comment_sort": ["top"],
             }
         },
     }
@@ -146,16 +147,31 @@ def fetch_youtube_channel(
 def _parse_video_entry(entry: dict) -> VideoInfo:
     video_id = entry.get("id", "")
     comments_raw = entry.get("comments", []) or []
-    comments = [
-        Comment(
-            text=c.get("text", ""),
-            author=c.get("author", ""),
-            like_count=c.get("like_count", 0) or 0,
+
+    # Group replies by parent, attach to top-level comments
+    top_level: list[tuple[str, Comment]] = []
+    replies_map: dict[str, list[Comment]] = {}
+    for c_raw in comments_raw:
+        if not c_raw or not c_raw.get("text"):
+            continue
+        comment = Comment(
+            text=c_raw.get("text", ""),
+            author=c_raw.get("author", ""),
+            like_count=c_raw.get("like_count", 0) or 0,
         )
-        for c in comments_raw
-        if c and c.get("text")
-    ]
-    # yt-dlp returns comments in top-sorted order by default
+        parent = c_raw.get("parent", "root")
+        cid = c_raw.get("id", "")
+        if parent == "root":
+            top_level.append((cid, comment))
+        else:
+            replies_map.setdefault(parent, []).append(comment)
+
+    for cid, comment in top_level:
+        comment.replies = sorted(
+            replies_map.get(cid, []), key=lambda c: c.like_count, reverse=True
+        )
+
+    comments = [c for _, c in top_level]
     comments.sort(key=lambda c: c.like_count, reverse=True)
 
     chapters = entry.get("chapters") or []
