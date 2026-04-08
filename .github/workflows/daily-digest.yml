@@ -29,6 +29,14 @@ jobs:
       - name: Install Playwright browser
         run: uv run playwright install chromium --with-deps
 
+      - name: Restore user configs from secrets
+        env:
+          JAMES_CONFIG: ${{ secrets.JAMES_CONFIG }}
+          MOM_CONFIG: ${{ secrets.MOM_CONFIG }}
+        run: |
+          echo "$JAMES_CONFIG" | base64 -d > config/james.yaml
+          echo "$MOM_CONFIG" | base64 -d > config/mom.yaml
+
       - name: Run digests (all users in config/)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -45,3 +53,14 @@ jobs:
             git commit -m "chore: update digest cache [skip ci]"
             git push
           fi
+
+      # Capture failures to cerebellum via HTTP daemon (commented until daemon is verified)
+      # - name: Capture failure to cerebellum
+      #   if: failure()
+      #   env:
+      #     RUN_ID: ${{ github.run_id }}
+      #     REPO: ${{ github.repository }}
+      #   run: |
+      #     curl -s -X POST http://localhost:PORT/capture \
+      #       -H "Content-Type: application/json" \
+      #       -d "{\"content\": \"Mango GA failure on run ${RUN_ID}: job failed. See https://github.com/${REPO}/actions/runs/${RUN_ID}\"}"

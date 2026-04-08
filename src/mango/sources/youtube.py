@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import subprocess
+import threading
 import time
 from datetime import datetime
 from pathlib import Path
@@ -47,7 +48,8 @@ def fetch_youtube_channel(
         "getcomments": include_comments,
         "extractor_args": {
             "youtube": {
-                "max_comments": [str(max_comments), "all", "top", "0"],
+                "max_comments": [str(max_comments), "all", "10", "5"],
+                "comment_sort": ["top"],
             }
         },
     }
@@ -65,6 +67,34 @@ def fetch_youtube_channel(
         if not entries:
             # Single video URL, not a channel
             entries = [playlist_info]
+        else:
+            # yt-dlp sometimes returns channel *tabs* (Videos, Shorts, Live) as
+            # top-level entries instead of actual videos. Tabs lack a `duration`
+            # field and have channel IDs (not 11-char video IDs) as their `id`.
+            # Detect this and re-extract from the Videos tab.
+            # Real videos have 11-char IDs and positive duration; tabs have channel IDs and duration=0
+            real_videos = [e for e in entries if e and (e.get("duration") or 0) > 0 and len(e.get("id", "")) == 11]
+            if not real_videos:
+                videos_tab = next(
+                    (
+                        e for e in entries
+                        if e and (
+                            (e.get("url", "") or "").rstrip("/").endswith("/videos")
+                            or (e.get("webpage_url", "") or "").rstrip("/").endswith("/videos")
+                        )
+                    ),
+                    entries[0] if entries else None,
+                )
+                tab_url = (videos_tab or {}).get("webpage_url") or (videos_tab or {}).get("url")
+                if videos_tab and tab_url:
+                    print(f"[youtube] Detected channel tabs — re-fetching Videos tab: {tab_url}")
+                    try:
+                        tab_info = ydl.extract_info(tab_url, download=False)
+                        entries = tab_info.get("entries", []) or []
+                        print(f"[youtube] Videos tab returned {len(entries)} entries")
+                    except Exception as e:
+                        print(f"[youtube] Failed to re-extract videos tab: {e}")
+                        entries = []
 
     for entry in entries:
         if entry is None:
@@ -118,16 +148,31 @@ def fetch_youtube_channel(
 def _parse_video_entry(entry: dict) -> VideoInfo:
     video_id = entry.get("id", "")
     comments_raw = entry.get("comments", []) or []
-    comments = [
-        Comment(
-            text=c.get("text", ""),
-            author=c.get("author", ""),
-            like_count=c.get("like_count", 0) or 0,
+
+    # Group replies by parent, attach to top-level comments
+    top_level: list[tuple[str, Comment]] = []
+    replies_map: dict[str, list[Comment]] = {}
+    for c_raw in comments_raw:
+        if not c_raw or not c_raw.get("text"):
+            continue
+        comment = Comment(
+            text=c_raw.get("text", ""),
+            author=c_raw.get("author", ""),
+            like_count=c_raw.get("like_count", 0) or 0,
         )
-        for c in comments_raw
-        if c and c.get("text")
-    ]
-    # yt-dlp returns comments in top-sorted order by default
+        parent = c_raw.get("parent", "root")
+        cid = c_raw.get("id", "")
+        if parent == "root":
+            top_level.append((cid, comment))
+        else:
+            replies_map.setdefault(parent, []).append(comment)
+
+    for cid, comment in top_level:
+        comment.replies = sorted(
+            replies_map.get(cid, []), key=lambda c: c.like_count, reverse=True
+        )
+
+    comments = [c for _, c in top_level]
     comments.sort(key=lambda c: c.like_count, reverse=True)
 
     chapters = entry.get("chapters") or []
@@ -151,17 +196,36 @@ def _parse_video_entry(entry: dict) -> VideoInfo:
     )
 
 
-def _fetch_transcript(video_id: str) -> list[tuple[float, str]] | None:
-    """Fetch transcript as list of (start_sec, text) tuples."""
-    try:
-        api = YouTubeTranscriptApi()
-        segments = api.fetch(video_id)
-        return [(s.start, s.text) for s in segments]
-    except (TranscriptsDisabled, NoTranscriptFound):
+def _fetch_transcript(video_id: str, timeout: int = 30) -> list[tuple[float, str]] | None:
+    """Fetch transcript as list of (start_sec, text) tuples.
+
+    Uses a daemon thread so a hung network call doesn't block the pipeline.
+    """
+    result: list[tuple[float, str]] | None = None
+    error: BaseException | None = None
+
+    def _do_fetch():
+        nonlocal result, error
+        try:
+            api = YouTubeTranscriptApi()
+            segments = api.fetch(video_id)
+            result = [(s.start, s.text) for s in segments]
+        except BaseException as exc:
+            error = exc
+
+    t = threading.Thread(target=_do_fetch, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+
+    if t.is_alive():
+        print(f"[youtube] Transcript fetch timed out for {video_id}")
         return None
-    except Exception as e:
-        print(f"[youtube] Transcript fetch failed for {video_id}: {e}")
+    if isinstance(error, (TranscriptsDisabled, NoTranscriptFound)):
         return None
+    if error is not None:
+        print(f"[youtube] Transcript fetch failed for {video_id}: {error}")
+        return None
+    return result
 
 
 def _get_key_timestamps(video: VideoInfo, max_frames: int) -> list[int]:

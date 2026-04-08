@@ -12,6 +12,7 @@ class Comment:
     like_count: int = 0
     reply_count: int = 0
     timestamp: str = ""
+    replies: list[Comment] = field(default_factory=list)
 
 
 @dataclass

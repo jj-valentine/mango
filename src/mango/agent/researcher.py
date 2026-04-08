@@ -6,9 +6,11 @@ and returns a structured EntitySummary.
 """
 from __future__ import annotations
 
+import base64
 import json
 import textwrap
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import anthropic
 
@@ -163,6 +165,9 @@ def _analyze_single_video(
             f"Entity: {entity.name} ({entity.description})\n\n"
             f"DIRECTIVE:\n{entity.directive.strip()}\n\n"
             "Respond in markdown. Be specific and concise. "
+            "When analyzing comments, consolidate and summarize the conversation "
+            "between users \u2014 identify consensus, disagreements, and notable "
+            "threads rather than listing individual comments. "
             "For tool mentions, list them as a JSON array on a line starting with "
             "`TOOLS:` (e.g. `TOOLS: [\"n8n\", \"LangChain\"]`). "
             "For key concepts, list them as `CONCEPTS: [\"...\"]`."
@@ -190,13 +195,21 @@ def _analyze_single_video(
     tools = _extract_json_list(analysis_text, "TOOLS:")
     concepts = _extract_json_list(analysis_text, "CONCEPTS:")
 
-    # Build frame description dicts for the email
+    # Build frame description dicts for the template
     frame_descs = []
     for frame in video.frames:
+        image_url = frame.github_url
+        if not image_url and frame.image_path:
+            p = Path(frame.image_path)
+            if p.exists():
+                with open(p, "rb") as img_f:
+                    b64 = base64.b64encode(img_f.read()).decode()
+                image_url = f"data:image/jpeg;base64,{b64}"
         frame_descs.append({
             "timestamp_sec": frame.timestamp_sec,
             "youtube_url": format_timestamp_link(video.video_id, frame.timestamp_sec),
             "github_url": frame.github_url,
+            "image_url": image_url,
             "description": frame.vision_description,
             "chapter_title": frame.chapter_title,
         })
@@ -257,12 +270,17 @@ def _build_video_metadata(video: VideoInfo) -> str:
         lines.append("")
 
     if video.comments:
-        lines.append("TOP COMMENTS (by likes):")
+        lines.append("TOP COMMENTS (by likes) WITH REPLY THREADS:")
         for c in video.comments[:10]:
             lines.append(
                 f"  [{c.like_count} likes] {c.author}: "
                 + textwrap.shorten(c.text, width=200, placeholder="...")
             )
+            for reply in c.replies[:5]:
+                lines.append(
+                    f"    \u21b3 [{reply.like_count} likes] {reply.author}: "
+                    + textwrap.shorten(reply.text, width=180, placeholder="...")
+                )
         lines.append("")
 
     # Pre-classified enrichment metadata (from external source, e.g. nate_transcripts)

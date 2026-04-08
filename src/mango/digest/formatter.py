@@ -71,16 +71,21 @@ def render_email(
     txt_template = env.get_template(template_txt)
 
     raw_html = html_template.render(**context)
-    # Inline all CSS for email client compatibility
-    try:
-        final_html = transform(
-            raw_html,
-            base_url=None,
-            preserve_internal_links=True,
-            remove_classes=False,
-        )
-    except Exception:
-        final_html = raw_html  # premailer failure is non-fatal
+    # Inline CSS for email client compatibility — skip for web-only templates
+    # (web templates use JS, CSS vars, and animations that premailer would break)
+    is_web_template = template_html.endswith("_web.html.j2")
+    if is_web_template:
+        final_html = raw_html
+    else:
+        try:
+            final_html = transform(
+                raw_html,
+                base_url=None,
+                preserve_internal_links=True,
+                remove_classes=False,
+            )
+        except Exception:
+            final_html = raw_html  # premailer failure is non-fatal
 
     plain = txt_template.render(**context)
 
