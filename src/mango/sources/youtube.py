@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import subprocess
+import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 from datetime import datetime
 from pathlib import Path
 
@@ -197,24 +197,35 @@ def _parse_video_entry(entry: dict) -> VideoInfo:
 
 
 def _fetch_transcript(video_id: str, timeout: int = 30) -> list[tuple[float, str]] | None:
-    """Fetch transcript as list of (start_sec, text) tuples."""
-    def _do_fetch():
-        api = YouTubeTranscriptApi()
-        segments = api.fetch(video_id)
-        return [(s.start, s.text) for s in segments]
+    """Fetch transcript as list of (start_sec, text) tuples.
 
-    try:
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(_do_fetch)
-            return future.result(timeout=timeout)
-    except (TranscriptsDisabled, NoTranscriptFound):
-        return None
-    except FuturesTimeout:
+    Uses a daemon thread so a hung network call doesn't block the pipeline.
+    """
+    result: list[tuple[float, str]] | None = None
+    error: BaseException | None = None
+
+    def _do_fetch():
+        nonlocal result, error
+        try:
+            api = YouTubeTranscriptApi()
+            segments = api.fetch(video_id)
+            result = [(s.start, s.text) for s in segments]
+        except BaseException as exc:
+            error = exc
+
+    t = threading.Thread(target=_do_fetch, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+
+    if t.is_alive():
         print(f"[youtube] Transcript fetch timed out for {video_id}")
         return None
-    except Exception as e:
-        print(f"[youtube] Transcript fetch failed for {video_id}: {e}")
+    if isinstance(error, (TranscriptsDisabled, NoTranscriptFound)):
         return None
+    if error is not None:
+        print(f"[youtube] Transcript fetch failed for {video_id}: {error}")
+        return None
+    return result
 
 
 def _get_key_timestamps(video: VideoInfo, max_frames: int) -> list[int]:

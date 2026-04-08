@@ -73,7 +73,7 @@ def render_email(
     raw_html = html_template.render(**context)
     # Inline CSS for email client compatibility — skip for web-only templates
     # (web templates use JS, CSS vars, and animations that premailer would break)
-    is_web_template = "web" in template_html
+    is_web_template = template_html.endswith("_web.html.j2")
     if is_web_template:
         final_html = raw_html
     else:
