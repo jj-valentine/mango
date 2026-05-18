@@ -22,12 +22,24 @@ config/*.yaml
 !config/entities.example.yaml
 !config/_*.yaml
 
-# Data (screenshots committed; DB committed; raw video downloads NOT)
+# Data (generated output — not source)
 data/videos/
 data/tmp/
+data/screenshots/
+data/seen_*.db
 *.mp4
 *.webm
 *.mkv
+
+# Generated output
+digest_preview_*.html
+
+# Working/continuity files
+HANDOFF.md
+CHANGELOG.md
+
+# Test artifacts
+.playwright-mcp/
 
 # Editor
 .DS_Store
